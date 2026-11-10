@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "regions": ["fra1"],
+  "functions": {
+    "api/*.py": {
+      "maxDuration": 30,
+      "includeFiles": "{tynys,data}/**",
+      "excludeFiles": "{node_modules,src,public,dist,tests,fixtures,docs,scripts,.cache}/**"
+    }
+  }
+}
