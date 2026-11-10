@@ -106,32 +106,36 @@ def get_air_bundle(city, offline=None):
 def split_series(bundle):
     """Turn the raw response into history (up to and including now) and forecast (after now).
 
-    "now" is the current local hour for live data and the hour the snapshot was taken for a snapshot.
+    1. The clock hour of the fetch (minutes dropped) is the latest possible "now": the current local hour
+       for live data, the hour the snapshot was taken for a snapshot.
+    2. Missing values (None) at the start of the history are dropped; missing values at the END of the
+       history (hours not published yet) move "now" back to the newest hour that has a value.
+       Missing values in the middle stay as None so consecutive-hour counting stays correct.
+    3. The forecast is the run of hours right after "now" that have values: it starts at now + 1 h and
+       stops at the first missing value, so forecast[k] is always the hour now + (k + 1) h.
     Returns {"now", "history": [(time, pm25, pm10)], "forecast": [(time, pm25, pm10)]}.
-    History hours with a missing PM2.5 are kept as None so consecutive-hour counting stays correct;
-    the forecast stops at the first missing value.
     """
-    now = bundle["fetched_at"][:13] + ":00"
+    latest = bundle["fetched_at"][:13] + ":00"
     hourly = bundle["air"]["hourly"]
     times = hourly["time"]
     pm25 = hourly["pm2_5"]
     pm10 = hourly.get("pm10") or [None] * len(times)
-    history = []
-    forecast = []
-    for i, t in enumerate(times):
-        if t <= now:
-            history.append((t, pm25[i], pm10[i]))
-        elif pm25[i] is None:
-            break
-        else:
-            forecast.append((t, pm25[i], pm10[i]))
-    while history and history[-1][1] is None:  # the newest hours may not be published yet
-        history.pop()
+    rows = [(times[i], pm25[i], pm10[i]) for i in range(len(times))]
+
+    history = [row for row in rows if row[0] <= latest]
     while history and history[0][1] is None:
         history.pop(0)
-    if history:
-        now = history[-1][0]
-        forecast = [row for row in forecast if row[0] > now]
+    while history and history[-1][1] is None:  # the newest hours may not be published yet
+        history.pop()
+    now = history[-1][0] if history else latest
+
+    forecast = []
+    for row in rows:
+        if row[0] <= now:
+            continue
+        if row[1] is None:
+            break
+        forecast.append(row)
     return {"now": now, "history": history, "forecast": forecast}
 
 

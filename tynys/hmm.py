@@ -254,6 +254,15 @@ def fit(bands, hours, min_count=20):
             "transitions": transitions, "backed_off": backed_off}
 
 
-def transitions_for_hours(matrices, hours):
-    """The matrix to use after each hour: [A_{block(h)} for h in hours]."""
-    return [matrices[block_of_hour(h)] for h in hours]
+def transitions_between(matrices, hours):
+    """Transition matrices for the steps between consecutive hours of a list.
+
+    hours = [h_0, h_1, ..., h_n] are consecutive clock hours. The step h_i -> h_(i+1) uses the matrix of
+    the time-of-day block of its ORIGIN hour h_i, so the result has n matrices (one fewer than hours):
+        [A_block(h_0), A_block(h_1), ..., A_block(h_(n-1))]
+    The filter, Viterbi, the prediction and the MDP all use this one convention.
+    """
+    steps = []
+    for i in range(len(hours) - 1):
+        steps.append(matrices[block_of_hour(hours[i])])
+    return steps

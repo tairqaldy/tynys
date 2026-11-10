@@ -47,6 +47,9 @@ def astar(offsets, targets, edge_cost, start, goal, heuristic=None):
 
     g(n) = cost of the best path found so far from start to n.
     With an admissible and consistent h, the first time the goal is expanded its g is optimal.
+    Expanded ("closed") nodes are never reopened. That is only correct because h is consistent
+    (h(n) <= cost(n, m) + h(m)): then f never decreases along a path, so the first time a node is
+    expanded it already has its cheapest g, and a later, cheaper path to it cannot exist.
     heuristic=None means h(n) = 0 (Dijkstra).
     Returns {"path": [nodes], "cost": g(goal), "expanded": number of expanded nodes,
              "order": nodes in expansion order}; path is None if the goal is unreachable.

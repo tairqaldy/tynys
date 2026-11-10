@@ -1,4 +1,6 @@
+import itertools
 import math
+import random
 import unittest
 
 from tynys import hmm
@@ -99,6 +101,42 @@ class FilteringOnClasses(unittest.TestCase):
         self.assertEqual(len(path), 4)
         for t, s in enumerate(path):
             self.assertGreater(self.B[s][obs[t]], 0)
+
+    def test_viterbi_is_the_most_probable_path(self):
+        """Compare with brute force over every hidden path, on sequences that hit zero emissions
+        and zero transitions."""
+        rng = random.Random(5)
+        for trial in range(60):
+            n_steps = 5
+            transitions = []
+            for _ in range(n_steps - 1):
+                matrix = []
+                for i in range(4):
+                    row = [rng.random() if rng.random() > 0.25 else 0.0 for _ in range(4)]
+                    row[i] += 0.1  # keep every row non-zero
+                    matrix.append([x / sum(row) for x in row])
+                transitions.append(matrix)
+            prior = [rng.random() for _ in range(4)]
+            prior = [x / sum(prior) for x in prior]
+            obs = [rng.randrange(4) for _ in range(n_steps)]
+
+            def probability(path):
+                p = prior[path[0]] * self.B[path[0]][obs[0]]
+                for t in range(1, n_steps):
+                    p *= transitions[t - 1][path[t - 1]][path[t]] * self.B[path[t]][obs[t]]
+                return p
+
+            best = max(probability(path) for path in itertools.product(range(4), repeat=n_steps))
+            if best == 0:
+                continue
+            path = hmm.viterbi(obs, prior, transitions, self.B)
+            self.assertAlmostEqual(probability(path), best, delta=1e-12 + 1e-9 * best, msg=f"trial {trial}")
+
+    def test_transitions_between_uses_origin_hour(self):
+        matrices = {b: b for b in BLOCKS}  # stand-ins, so the result shows which block was used
+        self.assertEqual(hmm.transitions_between(matrices, [4, 5, 6, 7]), ["night", "night", "morning"])
+        self.assertEqual(hmm.transitions_between(matrices, [23, 0]), ["evening"])
+        self.assertEqual(hmm.transitions_between(matrices, [11]), [])
 
     def test_predict_ahead(self):
         out = hmm.predict_ahead([0, 1, 0, 0], [self.A] * 3, [1, 2, 2])

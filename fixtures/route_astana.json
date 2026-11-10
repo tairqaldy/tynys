@@ -20,8 +20,9 @@
   ],
   "snap_m": 29
  },
- "at": "2026-11-10T11:00",
- "pm25_at": 3.28,
+ "at": "2026-11-10T12:00",
+ "at_clamped": false,
+ "pm25_at": 4.93,
  "ventilation_m3h": 1.2,
  "h_factor": 0.6,
  "shortest": {
@@ -439,7 +440,7 @@
   "minutes": 43.2,
   "weighted_cost": 4886,
   "mean_index": 1.414,
-  "exposure_score": 4.0,
+  "exposure_score": 6.02,
   "by_kind": {
    "secondary": 0.666,
    "street": 0.1205,
@@ -1018,7 +1019,7 @@
   "minutes": 44.4,
   "weighted_cost": 2911,
   "mean_index": 0.819,
-  "exposure_score": 2.39,
+  "exposure_score": 3.59,
   "by_kind": {
    "path": 0.7263,
    "park": 0.1505,

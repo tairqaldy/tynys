@@ -305,8 +305,8 @@ def build(city):
     for u, nbrs in enumerate(neighbours):
         for v, number in sorted(nbrs):
             d = haversine_m(lat[u] / 1e6, lon[u] / 1e6, lat[v] / 1e6, lon[v] / 1e6)
-            dm = math.ceil(d * 10)
-            if dm / 10 < d:
+            dm = math.ceil(d * 10)  # decimetres, rounded UP so that length >= straight-line distance
+            if dm / 10 < d:  # guard: dividing back by 10 can lose a hair to floating point; never go below d
                 dm += 1
             targets.append(v)
             length_dm.append(dm)

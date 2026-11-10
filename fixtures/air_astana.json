@@ -1,19 +1,14 @@
 {
  "city": "astana",
  "timezone": "Asia/Almaty",
- "now": "2026-11-10T11:00",
+ "now": "2026-11-10T12:00",
  "source": "live",
  "current": {
-  "pm25": 5.0,
-  "pm10": 5.9,
-  "band": 0
+  "pm25": 5.2,
+  "pm10": 6.1,
+  "band": 1
  },
  "readings": [
-  {
-   "time": "2026-11-08T12:00",
-   "pm25": 15.1,
-   "band": 2
-  },
   {
    "time": "2026-11-08T13:00",
    "pm25": 14.2,
@@ -248,14 +243,14 @@
    "time": "2026-11-10T11:00",
    "pm25": 5.0,
    "band": 0
-  }
- ],
- "forecast": [
+  },
   {
    "time": "2026-11-10T12:00",
    "pm25": 5.2,
    "band": 1
-  },
+  }
+ ],
+ "forecast": [
   {
    "time": "2026-11-10T13:00",
    "pm25": 5.0,
@@ -490,15 +485,20 @@
    "time": "2026-11-12T11:00",
    "pm25": 3.9,
    "band": 0
+  },
+  {
+   "time": "2026-11-12T12:00",
+   "pm25": 3.3,
+   "band": 0
   }
  ],
  "hmm": {
-  "history_hours": 2220,
+  "history_hours": 2221,
   "reliability": 0.8,
-  "agreement": 0.9194,
+  "agreement": 0.9199,
   "prior": [
-   0.3453,
-   0.5661,
+   0.3452,
+   0.5663,
    0.0697,
    0.0189
   ],
@@ -563,10 +563,10 @@
    ],
    "morning": [
     [
-     0.8883,
-     0.1019,
-     0.0049,
-     0.0049
+     0.8841,
+     0.1063,
+     0.0048,
+     0.0048
     ],
     [
      0.0828,
@@ -670,7 +670,7 @@
    "morning": [
     [
      182,
-     20,
+     21,
      0,
      0
     ],
@@ -748,7 +748,7 @@
    "all": [
     [
      678,
-     88,
+     89,
      0,
      0
     ],
@@ -801,18 +801,18 @@
   ],
   "filtered": [
    {
-    "time": "2026-11-09T12:00",
+    "time": "2026-11-09T13:00",
     "obs": 0,
     "belief": [
-     0.8299,
-     0.1701,
+     0.8298,
+     0.1702,
      0.0,
      0.0
     ],
     "viterbi": 0
    },
    {
-    "time": "2026-11-09T13:00",
+    "time": "2026-11-09T14:00",
     "obs": 0,
     "belief": [
      0.9519,
@@ -823,7 +823,7 @@
     "viterbi": 0
    },
    {
-    "time": "2026-11-09T14:00",
+    "time": "2026-11-09T15:00",
     "obs": 0,
     "belief": [
      0.9701,
@@ -834,7 +834,7 @@
     "viterbi": 0
    },
    {
-    "time": "2026-11-09T15:00",
+    "time": "2026-11-09T16:00",
     "obs": 0,
     "belief": [
      0.9725,
@@ -845,22 +845,11 @@
     "viterbi": 0
    },
    {
-    "time": "2026-11-09T16:00",
-    "obs": 0,
-    "belief": [
-     0.9728,
-     0.0272,
-     0.0,
-     0.0
-    ],
-    "viterbi": 0
-   },
-   {
     "time": "2026-11-09T17:00",
     "obs": 1,
     "belief": [
-     0.5276,
-     0.4709,
+     0.5272,
+     0.4713,
      0.0016,
      0.0
     ],
@@ -870,8 +859,8 @@
     "time": "2026-11-09T18:00",
     "obs": 1,
     "belief": [
-     0.1916,
-     0.805,
+     0.1914,
+     0.8052,
      0.0034,
      0.0
     ],
@@ -881,7 +870,7 @@
     "time": "2026-11-09T19:00",
     "obs": 1,
     "belief": [
-     0.0621,
+     0.062,
      0.9317,
      0.0062,
      0.0
@@ -1013,8 +1002,8 @@
     "time": "2026-11-10T07:00",
     "obs": 0,
     "belief": [
-     0.9847,
-     0.0153,
+     0.984,
+     0.016,
      0.0,
      0.0
     ],
@@ -1024,8 +1013,8 @@
     "time": "2026-11-10T08:00",
     "obs": 0,
     "belief": [
-     0.984,
-     0.016,
+     0.9832,
+     0.0168,
      0.0,
      0.0
     ],
@@ -1035,8 +1024,8 @@
     "time": "2026-11-10T09:00",
     "obs": 0,
     "belief": [
-     0.9839,
-     0.0161,
+     0.9831,
+     0.0169,
      0.0,
      0.0
     ],
@@ -1046,8 +1035,8 @@
     "time": "2026-11-10T10:00",
     "obs": 0,
     "belief": [
-     0.9839,
-     0.0161,
+     0.9831,
+     0.0169,
      0.0,
      0.0
     ],
@@ -1057,98 +1046,96 @@
     "time": "2026-11-10T11:00",
     "obs": 0,
     "belief": [
-     0.9839,
-     0.0161,
+     0.9831,
+     0.0169,
      0.0,
+     0.0
+    ],
+    "viterbi": 0
+   },
+   {
+    "time": "2026-11-10T12:00",
+    "obs": 1,
+    "belief": [
+     0.6439,
+     0.3542,
+     0.0018,
      0.0
     ],
     "viterbi": 0
    }
   ],
   "belief_now": [
-   0.9839,
-   0.0161,
-   0.0,
+   0.6439,
+   0.3542,
+   0.0018,
    0.0
   ],
   "state_now": 0,
   "bayes_step": {
-   "time": "2026-11-10T11:00",
-   "obs": 0,
+   "time": "2026-11-10T12:00",
+   "obs": 1,
    "predicted": [
-    0.8754,
-    0.1148,
+    0.8705,
+    0.1197,
     0.005,
     0.0048
    ],
    "likelihood": [
+    0.2,
     0.8,
     0.1,
-    0.0,
     0.0
    ],
    "unnormalised": [
-    0.7003,
-    0.0115,
-    0.0,
+    0.1741,
+    0.0958,
+    0.0005,
     0.0
    ],
-   "evidence": 0.7118,
+   "evidence": 0.2704,
    "posterior": [
-    0.9839,
-    0.0161,
-    0.0,
+    0.6439,
+    0.3542,
+    0.0018,
     0.0
    ]
   },
   "predicted": [
    {
-    "time": "2026-11-10T12:00",
+    "time": "2026-11-10T13:00",
     "lead_h": 1,
-    "forecast_band": 1,
+    "forecast_band": 0,
     "forecast_reliability": 0.745,
     "belief": [
-     0.7214,
-     0.2765,
-     0.0021,
+     0.8877,
+     0.1123,
+     0.0,
      0.0
     ],
-    "expected_pm25": 4.56
+    "expected_pm25": 3.74
    },
    {
-    "time": "2026-11-10T13:00",
+    "time": "2026-11-10T14:00",
     "lead_h": 2,
     "forecast_band": 0,
     "forecast_reliability": 0.74,
     "belief": [
-     0.9075,
-     0.0925,
+     0.946,
+     0.054,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.64
+    "expected_pm25": 3.46
    },
    {
-    "time": "2026-11-10T14:00",
+    "time": "2026-11-10T15:00",
     "lead_h": 3,
     "forecast_band": 0,
     "forecast_reliability": 0.735,
     "belief": [
-     0.9488,
-     0.0512,
-     0.0,
-     0.0
-    ],
-    "expected_pm25": 3.45
-   },
-   {
-    "time": "2026-11-10T15:00",
-    "lead_h": 4,
-    "forecast_band": 0,
-    "forecast_reliability": 0.73,
-    "belief": [
-     0.9558,
-     0.0442,
+     0.9563,
+     0.0437,
      0.0,
      0.0
     ],
@@ -1156,175 +1143,188 @@
    },
    {
     "time": "2026-11-10T16:00",
+    "lead_h": 4,
+    "forecast_band": 1,
+    "forecast_reliability": 0.73,
+    "belief": [
+     0.6038,
+     0.3943,
+     0.002,
+     0.0
+    ],
+    "expected_pm25": 5.12
+   },
+   {
+    "time": "2026-11-10T17:00",
     "lead_h": 5,
     "forecast_band": 1,
     "forecast_reliability": 0.725,
     "belief": [
-     0.6091,
-     0.3889,
-     0.002,
-     0.0
-    ],
-    "expected_pm25": 5.1
-   },
-   {
-    "time": "2026-11-10T17:00",
-    "lead_h": 6,
-    "forecast_band": 1,
-    "forecast_reliability": 0.72,
-    "belief": [
-     0.3198,
-     0.6757,
+     0.3109,
+     0.6846,
      0.0045,
      0.0
     ],
-    "expected_pm25": 6.51
+    "expected_pm25": 6.55
    },
    {
     "time": "2026-11-10T18:00",
+    "lead_h": 6,
+    "forecast_band": 2,
+    "forecast_reliability": 0.72,
+    "belief": [
+     0.0,
+     0.8316,
+     0.159,
+     0.0094
+    ],
+    "expected_pm25": 9.82
+   },
+   {
+    "time": "2026-11-10T19:00",
     "lead_h": 7,
     "forecast_band": 2,
     "forecast_reliability": 0.715,
     "belief": [
      0.0,
-     0.8344,
-     0.1561,
-     0.0096
+     0.4815,
+     0.4977,
+     0.0208
     ],
-    "expected_pm25": 9.8
-   },
-   {
-    "time": "2026-11-10T19:00",
-    "lead_h": 8,
-    "forecast_band": 2,
-    "forecast_reliability": 0.71,
-    "belief": [
-     0.0,
-     0.4911,
-     0.4877,
-     0.0211
-    ],
-    "expected_pm25": 13.39
+    "expected_pm25": 13.48
    },
    {
     "time": "2026-11-10T20:00",
+    "lead_h": 8,
+    "forecast_band": 3,
+    "forecast_reliability": 0.71,
+    "belief": [
+     0.0,
+     0.0,
+     0.6747,
+     0.3253
+    ],
+    "expected_pm25": 23.3
+   },
+   {
+    "time": "2026-11-10T21:00",
     "lead_h": 9,
     "forecast_band": 3,
     "forecast_reliability": 0.705,
     "belief": [
      0.0,
      0.0,
-     0.6769,
-     0.3231
+     0.2968,
+     0.7032
     ],
-    "expected_pm25": 23.26
+    "expected_pm25": 29.57
    },
    {
-    "time": "2026-11-10T21:00",
+    "time": "2026-11-10T22:00",
     "lead_h": 10,
     "forecast_band": 3,
     "forecast_reliability": 0.7,
     "belief": [
      0.0,
      0.0,
-     0.3035,
-     0.6965
+     0.1184,
+     0.8816
     ],
-    "expected_pm25": 29.46
+    "expected_pm25": 32.54
    },
    {
-    "time": "2026-11-10T22:00",
+    "time": "2026-11-10T23:00",
     "lead_h": 11,
     "forecast_band": 3,
     "forecast_reliability": 0.695,
     "belief": [
      0.0,
      0.0,
-     0.123,
-     0.877
+     0.0727,
+     0.9273
     ],
-    "expected_pm25": 32.46
+    "expected_pm25": 33.29
    },
    {
-    "time": "2026-11-10T23:00",
+    "time": "2026-11-11T00:00",
     "lead_h": 12,
     "forecast_band": 3,
     "forecast_reliability": 0.69,
     "belief": [
      0.0,
      0.0,
-     0.0754,
-     0.9246
+     0.0639,
+     0.9361
     ],
-    "expected_pm25": 33.25
+    "expected_pm25": 33.44
    },
    {
-    "time": "2026-11-11T00:00",
+    "time": "2026-11-11T01:00",
     "lead_h": 13,
     "forecast_band": 3,
     "forecast_reliability": 0.685,
     "belief": [
      0.0,
      0.0,
-     0.0659,
-     0.9341
+     0.0637,
+     0.9363
     ],
-    "expected_pm25": 33.41
+    "expected_pm25": 33.44
    },
    {
-    "time": "2026-11-11T01:00",
+    "time": "2026-11-11T02:00",
     "lead_h": 14,
     "forecast_band": 3,
     "forecast_reliability": 0.68,
     "belief": [
      0.0,
      0.0,
-     0.0655,
-     0.9345
+     0.065,
+     0.935
     ],
-    "expected_pm25": 33.41
+    "expected_pm25": 33.42
    },
    {
-    "time": "2026-11-11T02:00",
+    "time": "2026-11-11T03:00",
     "lead_h": 15,
     "forecast_band": 3,
     "forecast_reliability": 0.675,
     "belief": [
      0.0,
      0.0,
-     0.0668,
-     0.9332
+     0.0667,
+     0.9333
     ],
     "expected_pm25": 33.39
    },
    {
-    "time": "2026-11-11T03:00",
+    "time": "2026-11-11T04:00",
     "lead_h": 16,
     "forecast_band": 3,
     "forecast_reliability": 0.67,
     "belief": [
      0.0,
      0.0,
-     0.0686,
-     0.9314
+     0.0685,
+     0.9315
     ],
     "expected_pm25": 33.36
    },
    {
-    "time": "2026-11-11T04:00",
+    "time": "2026-11-11T05:00",
     "lead_h": 17,
     "forecast_band": 3,
     "forecast_reliability": 0.665,
     "belief": [
      0.0,
      0.0,
-     0.0705,
-     0.9295
+     0.0704,
+     0.9296
     ],
     "expected_pm25": 33.33
    },
    {
-    "time": "2026-11-11T05:00",
+    "time": "2026-11-11T06:00",
     "lead_h": 18,
     "forecast_band": 3,
     "forecast_reliability": 0.66,
@@ -1337,117 +1337,104 @@
     "expected_pm25": 33.3
    },
    {
-    "time": "2026-11-11T06:00",
+    "time": "2026-11-11T07:00",
     "lead_h": 19,
     "forecast_band": 3,
     "forecast_reliability": 0.655,
     "belief": [
      0.0,
      0.0,
-     0.0744,
-     0.9256
+     0.0701,
+     0.9299
     ],
-    "expected_pm25": 33.26
+    "expected_pm25": 33.34
    },
    {
-    "time": "2026-11-11T07:00",
+    "time": "2026-11-11T08:00",
     "lead_h": 20,
     "forecast_band": 3,
     "forecast_reliability": 0.65,
     "belief": [
      0.0,
      0.0,
-     0.072,
-     0.928
+     0.0711,
+     0.9289
     ],
-    "expected_pm25": 33.31
+    "expected_pm25": 33.32
    },
    {
-    "time": "2026-11-11T08:00",
+    "time": "2026-11-11T09:00",
     "lead_h": 21,
     "forecast_band": 3,
     "forecast_reliability": 0.645,
     "belief": [
      0.0,
      0.0,
-     0.0729,
-     0.9271
+     0.0728,
+     0.9272
     ],
     "expected_pm25": 33.29
    },
    {
-    "time": "2026-11-11T09:00",
+    "time": "2026-11-11T10:00",
     "lead_h": 22,
-    "forecast_band": 3,
+    "forecast_band": 2,
     "forecast_reliability": 0.64,
     "belief": [
      0.0,
-     0.0,
-     0.0746,
-     0.9254
+     0.021,
+     0.3305,
+     0.6485
     ],
-    "expected_pm25": 33.26
-   },
-   {
-    "time": "2026-11-11T10:00",
-    "lead_h": 23,
-    "forecast_band": 2,
-    "forecast_reliability": 0.635,
-    "belief": [
-     0.0,
-     0.0215,
-     0.3268,
-     0.6517
-    ],
-    "expected_pm25": 28.51
+    "expected_pm25": 28.46
    },
    {
     "time": "2026-11-11T11:00",
+    "lead_h": 23,
+    "forecast_band": 1,
+    "forecast_reliability": 0.635,
+    "belief": [
+     0.0569,
+     0.5968,
+     0.3463,
+     0.0
+    ],
+    "expected_pm25": 11.16
+   },
+   {
+    "time": "2026-11-11T12:00",
     "lead_h": 24,
     "forecast_band": 1,
     "forecast_reliability": 0.63,
     "belief": [
-     0.0579,
-     0.5913,
-     0.3508,
+     0.0808,
+     0.8417,
+     0.0776,
      0.0
     ],
-    "expected_pm25": 11.19
+    "expected_pm25": 8.38
    },
    {
-    "time": "2026-11-11T12:00",
+    "time": "2026-11-11T13:00",
     "lead_h": 25,
     "forecast_band": 1,
     "forecast_reliability": 0.625,
     "belief": [
-     0.0831,
-     0.8367,
-     0.0801,
+     0.094,
+     0.878,
+     0.028,
      0.0
     ],
-    "expected_pm25": 8.39
-   },
-   {
-    "time": "2026-11-11T13:00",
-    "lead_h": 26,
-    "forecast_band": 1,
-    "forecast_reliability": 0.62,
-    "belief": [
-     0.0971,
-     0.8737,
-     0.0292,
-     0.0
-    ],
-    "expected_pm25": 7.82
+    "expected_pm25": 7.83
    },
    {
     "time": "2026-11-11T14:00",
-    "lead_h": 27,
+    "lead_h": 26,
     "forecast_band": 0,
-    "forecast_reliability": 0.615,
+    "forecast_reliability": 0.62,
     "belief": [
-     0.3823,
-     0.6177,
+     0.383,
+     0.617,
      0.0,
      0.0
     ],
@@ -1455,194 +1442,194 @@
    },
    {
     "time": "2026-11-11T15:00",
+    "lead_h": 27,
+    "forecast_band": 0,
+    "forecast_reliability": 0.615,
+    "belief": [
+     0.6605,
+     0.3395,
+     0.0,
+     0.0
+    ],
+    "expected_pm25": 4.83
+   },
+   {
+    "time": "2026-11-11T16:00",
     "lead_h": 28,
     "forecast_band": 0,
     "forecast_reliability": 0.61,
     "belief": [
-     0.6552,
-     0.3448,
+     0.8161,
+     0.1839,
      0.0,
      0.0
     ],
-    "expected_pm25": 4.86
-   },
-   {
-    "time": "2026-11-11T16:00",
-    "lead_h": 29,
-    "forecast_band": 0,
-    "forecast_reliability": 0.605,
-    "belief": [
-     0.8105,
-     0.1895,
-     0.0,
-     0.0
-    ],
-    "expected_pm25": 4.11
+    "expected_pm25": 4.08
    },
    {
     "time": "2026-11-11T17:00",
-    "lead_h": 30,
+    "lead_h": 29,
     "forecast_band": 1,
-    "forecast_reliability": 0.6,
+    "forecast_reliability": 0.605,
     "belief": [
-     0.604,
-     0.3921,
-     0.0039,
+     0.6038,
+     0.3924,
+     0.0038,
      0.0
     ],
     "expected_pm25": 5.14
    },
    {
     "time": "2026-11-11T18:00",
+    "lead_h": 30,
+    "forecast_band": 1,
+    "forecast_reliability": 0.6,
+    "belief": [
+     0.4415,
+     0.5516,
+     0.0069,
+     0.0
+    ],
+    "expected_pm25": 5.95
+   },
+   {
+    "time": "2026-11-11T19:00",
     "lead_h": 31,
     "forecast_band": 1,
     "forecast_reliability": 0.595,
     "belief": [
-     0.4467,
-     0.5463,
-     0.007,
+     0.3197,
+     0.6667,
+     0.0135,
      0.0
     ],
-    "expected_pm25": 5.92
+    "expected_pm25": 6.6
    },
    {
-    "time": "2026-11-11T19:00",
+    "time": "2026-11-11T20:00",
     "lead_h": 32,
     "forecast_band": 1,
     "forecast_reliability": 0.59,
     "belief": [
-     0.328,
-     0.6583,
-     0.0137,
+     0.2393,
+     0.7436,
+     0.017,
      0.0
     ],
-    "expected_pm25": 6.56
-   },
-   {
-    "time": "2026-11-11T20:00",
-    "lead_h": 33,
-    "forecast_band": 1,
-    "forecast_reliability": 0.585,
-    "belief": [
-     0.2487,
-     0.734,
-     0.0173,
-     0.0
-    ],
-    "expected_pm25": 6.98
+    "expected_pm25": 7.02
    },
    {
     "time": "2026-11-11T21:00",
+    "lead_h": 33,
+    "forecast_band": 0,
+    "forecast_reliability": 0.585,
+    "belief": [
+     0.4865,
+     0.5135,
+     0.0,
+     0.0
+    ],
+    "expected_pm25": 5.66
+   },
+   {
+    "time": "2026-11-11T22:00",
     "lead_h": 34,
     "forecast_band": 0,
     "forecast_reliability": 0.58,
     "belief": [
-     0.4915,
-     0.5085,
+     0.6908,
+     0.3092,
      0.0,
      0.0
     ],
-    "expected_pm25": 5.64
+    "expected_pm25": 4.68
    },
    {
-    "time": "2026-11-11T22:00",
+    "time": "2026-11-11T23:00",
     "lead_h": 35,
     "forecast_band": 0,
     "forecast_reliability": 0.575,
     "belief": [
-     0.6899,
-     0.3101,
+     0.8081,
+     0.1919,
      0.0,
      0.0
     ],
-    "expected_pm25": 4.69
+    "expected_pm25": 4.12
    },
    {
-    "time": "2026-11-11T23:00",
+    "time": "2026-11-12T00:00",
     "lead_h": 36,
     "forecast_band": 0,
     "forecast_reliability": 0.57,
     "belief": [
-     0.8045,
-     0.1955,
+     0.8612,
+     0.1388,
      0.0,
      0.0
     ],
-    "expected_pm25": 4.14
+    "expected_pm25": 3.87
    },
    {
-    "time": "2026-11-12T00:00",
+    "time": "2026-11-12T01:00",
     "lead_h": 37,
     "forecast_band": 0,
     "forecast_reliability": 0.565,
     "belief": [
-     0.8571,
-     0.1429,
+     0.9215,
+     0.0785,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.89
+    "expected_pm25": 3.58
    },
    {
-    "time": "2026-11-12T01:00",
+    "time": "2026-11-12T02:00",
     "lead_h": 38,
     "forecast_band": 0,
     "forecast_reliability": 0.56,
     "belief": [
-     0.9183,
-     0.0817,
+     0.9445,
+     0.0555,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.59
+    "expected_pm25": 3.47
    },
    {
-    "time": "2026-11-12T02:00",
+    "time": "2026-11-12T03:00",
     "lead_h": 39,
     "forecast_band": 0,
     "forecast_reliability": 0.555,
     "belief": [
-     0.9422,
-     0.0578,
-     0.0,
-     0.0
-    ],
-    "expected_pm25": 3.48
-   },
-   {
-    "time": "2026-11-12T03:00",
-    "lead_h": 40,
-    "forecast_band": 0,
-    "forecast_reliability": 0.55,
-    "belief": [
-     0.9507,
-     0.0493,
-     0.0,
-     0.0
-    ],
-    "expected_pm25": 3.44
-   },
-   {
-    "time": "2026-11-12T04:00",
-    "lead_h": 41,
-    "forecast_band": 0,
-    "forecast_reliability": 0.545,
-    "belief": [
-     0.9531,
-     0.0469,
+     0.9525,
+     0.0475,
      0.0,
      0.0
     ],
     "expected_pm25": 3.43
    },
    {
-    "time": "2026-11-12T05:00",
-    "lead_h": 42,
+    "time": "2026-11-12T04:00",
+    "lead_h": 40,
     "forecast_band": 0,
-    "forecast_reliability": 0.54,
+    "forecast_reliability": 0.55,
     "belief": [
-     0.9532,
-     0.0468,
+     0.9547,
+     0.0453,
+     0.0,
+     0.0
+    ],
+    "expected_pm25": 3.42
+   },
+   {
+    "time": "2026-11-12T05:00",
+    "lead_h": 41,
+    "forecast_band": 0,
+    "forecast_reliability": 0.545,
+    "belief": [
+     0.9548,
+     0.0452,
      0.0,
      0.0
     ],
@@ -1650,25 +1637,25 @@
    },
    {
     "time": "2026-11-12T06:00",
+    "lead_h": 42,
+    "forecast_band": 0,
+    "forecast_reliability": 0.54,
+    "belief": [
+     0.9539,
+     0.0461,
+     0.0,
+     0.0
+    ],
+    "expected_pm25": 3.42
+   },
+   {
+    "time": "2026-11-12T07:00",
     "lead_h": 43,
     "forecast_band": 0,
     "forecast_reliability": 0.535,
     "belief": [
-     0.9523,
-     0.0477,
-     0.0,
-     0.0
-    ],
-    "expected_pm25": 3.43
-   },
-   {
-    "time": "2026-11-12T07:00",
-    "lead_h": 44,
-    "forecast_band": 0,
-    "forecast_reliability": 0.53,
-    "belief": [
-     0.9319,
-     0.0681,
+     0.9317,
+     0.0683,
      0.0,
      0.0
     ],
@@ -1676,12 +1663,12 @@
    },
    {
     "time": "2026-11-12T08:00",
-    "lead_h": 45,
+    "lead_h": 44,
     "forecast_band": 0,
-    "forecast_reliability": 0.525,
+    "forecast_reliability": 0.53,
     "belief": [
-     0.9218,
-     0.0782,
+     0.9209,
+     0.0791,
      0.0,
      0.0
     ],
@@ -1689,47 +1676,60 @@
    },
    {
     "time": "2026-11-12T09:00",
+    "lead_h": 45,
+    "forecast_band": 0,
+    "forecast_reliability": 0.525,
+    "belief": [
+     0.9147,
+     0.0853,
+     0.0,
+     0.0
+    ],
+    "expected_pm25": 3.61
+   },
+   {
+    "time": "2026-11-12T10:00",
     "lead_h": 46,
     "forecast_band": 0,
     "forecast_reliability": 0.52,
     "belief": [
-     0.9158,
-     0.0842,
+     0.9103,
+     0.0897,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.6
+    "expected_pm25": 3.63
    },
    {
-    "time": "2026-11-12T10:00",
+    "time": "2026-11-12T11:00",
     "lead_h": 47,
     "forecast_band": 0,
     "forecast_reliability": 0.515,
     "belief": [
-     0.9115,
-     0.0885,
+     0.9067,
+     0.0933,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.62
+    "expected_pm25": 3.65
    },
    {
-    "time": "2026-11-12T11:00",
+    "time": "2026-11-12T12:00",
     "lead_h": 48,
     "forecast_band": 0,
     "forecast_reliability": 0.51,
     "belief": [
-     0.9078,
-     0.0922,
+     0.9032,
+     0.0968,
      0.0,
      0.0
     ],
-    "expected_pm25": 3.64
+    "expected_pm25": 3.66
    }
   ]
  },
  "weather": {
-  "wind_kmh": 9.5,
-  "temp_c": -0.2
+  "wind_kmh": 8.1,
+  "temp_c": -0.5
  }
 }

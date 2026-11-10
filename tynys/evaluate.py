@@ -7,10 +7,10 @@ are reproducible; --live fetches fresh data first.
 
 HMM  - 1, 3 and 6 hour-ahead class accuracy using the transition matrices only (trained on the
        first 78 days, tested on the last 14), against persistence (the class stays the same).
-MDP  - backtest over the 14 test days: mean realised reward of the policy vs "always go now" vs the
-       oracle best hour. Past model values stand in for the forecast.
+MDP  - backtest over the 14 test days: mean realised reward of "always go now", the policy with a
+       persistence forecast (no peeking), the policy with a perfect forecast (upper bound) and the oracle.
 A*   - 30 random pairs per city: node expansions vs Dijkstra, extra distance and reduction in
-       weighted cost of the cleanest route.
+       weighted cost of the lower-exposure ("cleanest") route.
 """
 
 import argparse
@@ -79,9 +79,14 @@ def hmm_accuracy(bands, hours):
 
 # ---------------------------------------------------------------- MDP backtest
 
-def backtest(bands, hours, model, activity, horizon=DEFAULTS["deadline_hours"], wait_cost=DEFAULTS["wait_cost"],
-             reliability=DEFAULTS["reliability"]):
+def backtest(bands, hours, model, activity, forecast, horizon=DEFAULTS["deadline_hours"],
+             wait_cost=DEFAULTS["wait_cost"], reliability=DEFAULTS["reliability"]):
     """Replay every test hour as "now": decide with the policy, then score it on what actually happened.
+
+    forecast = "perfect":     the MDP is told the model bands that really came next (it peeks at the
+                              future it is scored on) -> an upper bound, not a fair test.
+    forecast = "persistence": the MDP is told that every future hour keeps the band of the start hour,
+                              so it uses no information about the future.
 
     The realised band at an hour stands in for the true class. Realised reward of going at hour t:
     R_go(band at t) - wait_cost * t; of skipping at hour t: -wait_cost * t.
@@ -100,11 +105,15 @@ def backtest(bands, hours, model, activity, horizon=DEFAULTS["deadline_hours"], 
         if None in window or None in future:
             continue
         # belief now from the last 24 readings
-        trans24 = hmm.transitions_for_hours(matrices, hours[t0 - 23:t0])
+        trans24 = hmm.transitions_between(matrices, hours[t0 - 23:t0 + 1])
         belief = hmm.forward(window, model["prior"], trans24, emission)[-1]
-        # MDP with past model values standing in for the forecast
-        transitions = [mdp.waiting_transition(matrices[block_of_hour(hours[t0 + t])], hmm.forecast_reliability(t + 1),
-                                              future[t + 1]) for t in range(horizon)]
+        if forecast == "perfect":
+            told = future[1:]  # the bands that actually came
+        else:
+            told = [future[0]] * horizon  # persistence: no look at the future
+        steps = hmm.transitions_between(matrices, hours[t0:t0 + horizon + 1])
+        transitions = [mdp.waiting_transition(steps[t], hmm.forecast_reliability(t + 1), told[t])
+                       for t in range(horizon)]
         stages = mdp.backward_induction(rewards, transitions, wait_cost, activity["must"])
         action, _, _, _ = mdp.qmdp_decision(belief, stages[0])
         # follow the policy on the realised bands
@@ -254,28 +263,52 @@ def main():
     w(f"Every hour of the {TEST_HOURS // 24}-day test period is replayed as \"now\" with the defaults (deadline "
       f"{DEFAULTS['deadline_hours']} h, waiting cost {DEFAULTS['wait_cost']}, reading trust {DEFAULTS['reliability']}). "
       "The belief comes from filtering the previous 24 readings with matrices trained on the 78 training days. "
-      "**Past model values stand in for the forecast**: the MDP sees the model values of the next hours "
-      "(with the usual forecast trust r_f(k)), so this is optimistic compared with a real forecast. "
-      "The realised reward uses the band that actually came: going at hour t earns `R_go(band_t) - wait_cost * t`. "
-      "The oracle knows the future and picks the best hour (or skips).")
+      "The realised reward uses the band that actually came: going at hour t earns `R_go(band_t) - wait_cost * t`, "
+      "skipping at hour t earns `-wait_cost * t`. Past forecasts were not archived, so the MDP's forecast input "
+      "is replaced in two ways that bracket the real app:")
     w("")
-    w("| city | activity | policy | always go now | oracle best hour | policy waited | start hours |")
-    w("|---|---|---|---|---|---|---|")
+    w("- **persistence forecast (no peeking):** every future hour is assumed to keep the band of the start hour. "
+      "The policy sees nothing of the future it is scored on.")
+    w("- **perfect forecast (upper bound):** the MDP is given the bands that really came next. This is the same "
+      "future the reward is scored on, so the policy is close to the oracle by construction.")
+    w("")
+    w("The oracle knows the future and picks the best hour (or skips when that is allowed).")
+    w("")
+    w("| city | activity | always go now | policy, persistence forecast | policy, perfect forecast (upper bound) "
+      "| oracle | waited (persistence / perfect) | start hours |")
+    w("|---|---|---|---|---|---|---|---|")
     for city in CITIES:
         s = summaries[city["id"]]
         s["bt"] = {}
         for activity in ACTIVITIES:
-            r = backtest(s["bands"], s["hours"], models[city["id"]], activity)
-            s["bt"][activity["id"]] = r
-            w(f"| {city['name']} | {activity['id']} | {r['policy']:.3f} | {r['go_now']:.3f} | {r['oracle']:.3f} | "
-              f"{pct(r['waited_share'])} | {r['n']} |")
+            plain = backtest(s["bands"], s["hours"], models[city["id"]], activity, "persistence")
+            peek = backtest(s["bands"], s["hours"], models[city["id"]], activity, "perfect")
+            s["bt"][activity["id"]] = (plain, peek)
+            w(f"| {city['name']} | {activity['id']} | {plain['go_now']:.3f} | {plain['policy']:.3f} | "
+              f"{peek['policy']:.3f} | {plain['oracle']:.3f} | {pct(plain['waited_share'])} / "
+              f"{pct(peek['waited_share'])} | {plain['n']} |")
     w("")
-    w("Units are the utility points of SPEC 4.4 (assumptions). The gap between the policy and the oracle is the "
-      "price of not knowing the future; the gap between the policy and \"always go now\" is what planning adds.")
+    w("Units are the utility points of SPEC 4.4 (assumptions). Reading the table:")
+    w("")
+    for city in CITIES:
+        bt = summaries[city["id"]]["bt"]
+        beats = [a for a, (plain, _) in bt.items() if plain["policy"] > plain["go_now"] + 1e-9]
+        not_beats = [a for a, (plain, _) in bt.items() if plain["policy"] <= plain["go_now"] + 1e-9]
+        line = f"- {city['name']}: with the persistence forecast the policy beats \"always go now\" for "
+        line += (", ".join(f"{a} ({bt[a][0]['policy']:.3f} vs {bt[a][0]['go_now']:.3f})" for a in beats) or "no activity")
+        if not_beats:
+            line += "; it does **not** beat it for " + ", ".join(
+                f"{a} ({bt[a][0]['policy']:.3f} vs {bt[a][0]['go_now']:.3f})" for a in not_beats)
+        w(line + ".")
+    w("")
+    w("The persistence column measures what the policy gains from the belief and the transition matrices alone. "
+      "The perfect-forecast column is an upper bound: it is close to the oracle because it was shown the answer, "
+      "not because planning is that good. The real app sits between the two: it receives the CAMS forecast, which "
+      "has errors. How much of the gap it closes is unknown until real forecasts are archived and replayed.")
     w("")
 
     # ---------------- A*
-    w("## 3. A*: heuristic savings and the cleanest route")
+    w("## 3. A*: heuristic savings and the lower-exposure route")
     w("")
     w(f"{N_PAIRS} random node pairs per city, 1-6 km apart in a straight line (fixed random seed). Each pair runs "
       "the four searches of a /api/route request (A* and Dijkstra for both cost functions); A* and Dijkstra "
@@ -290,7 +323,7 @@ def main():
         for name in ("shortest", "cleanest"):
             a = statistics.mean(r[name]["expanded"] for r in rows)
             d = statistics.mean(r[name]["dijkstra"] for r in rows)
-            w(f"| {city['name']} | {g.n_nodes} nodes, {g.n_edges} edges | {name} | {a:.0f} | {d:.0f} | {pct(1 - a / d)} |")
+            w(f"| {city['name']} | {g.n_nodes} nodes, {g.n_edges} edges | {'lower-exposure' if name == 'cleanest' else name} | {a:.0f} | {d:.0f} | {pct(1 - a / d)} |")
     w("")
     w("| city | mean extra distance | median extra distance | mean weighted-cost reduction | median reduction | "
       "same route | mean time for 4 searches |")
@@ -304,7 +337,7 @@ def main():
         w(f"| {city['name']} | {pct(statistics.mean(extra))} | {pct(statistics.median(extra))} | "
           f"{pct(statistics.mean(reduction))} | {pct(statistics.median(reduction))} | {same}/{len(rows)} | {secs:.3f} s |")
     w("")
-    w("The heuristic of the cleanest search is scaled by H_FACTOR = 0.6 to stay admissible, so it is weaker and "
+    w("The heuristic of the lower-exposure search (`cleanest` in the API) is scaled by H_FACTOR = 0.6 to stay admissible, so it is weaker and "
       "saves fewer expansions than the shortest search. The weighted-cost reduction is measured in the traffic "
       "exposure index (an assumption), not in measured pollution.")
     w("")
@@ -322,7 +355,7 @@ def main():
     w("- **QMDP.** The action rule assumes the class becomes known after one step; a small POMDP solved over a "
       "discretised belief would value waiting for information properly.")
     w("- **Exposure index.** Kinds come from OSM road classes and a 25 m rule; traffic counts or measured NO2 "
-      "along streets would make the cleanest route evidence-based rather than a proxy.")
+      "along streets would make the lower-exposure route evidence-based rather than a proxy.")
     w("")
 
     path = os.path.join(ROOT, "docs", "evaluation.md")

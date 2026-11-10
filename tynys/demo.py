@@ -17,6 +17,7 @@ from tynys.classes import ASSUMPTIONS, CITY_BY_ID, CLASSES, H_FACTOR, KINDS, blo
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NAMES = [c["id"] for c in CLASSES]
 SHORT = ["low", "mod", "elev", "high"]
+LABEL = {"shortest": "shortest", "cleanest": "lower-exposure"}
 TRIPS = {"astana": ("khan-shatyr", "ak-orda"), "almaty": ("republic-square", "green-bazaar")}
 
 
@@ -120,10 +121,10 @@ def run(city, activity):
     print("    Q_go = R_go;  Q_wait = -wait_cost + sum_s' T_t[s][s'] V_(t+1)(s');  V = max (ties: go, wait, skip)")
     rows = []
     for hr in reversed(p["hours"]):
-        rows.append([hr["t"], hr["time"][11:], SHORT[hr["forecast_band"]],
+        rows.append([hr["t"], hr["time"][11:], f"{SHORT[hr['forecast_band']]} ({hr['band_source']})",
                      vec(hr["q_wait"], 2) if hr["q_wait"] else "-", vec(hr["value"], 2),
                      " ".join(x[:4] for x in hr["policy"])])
-    table(["t", "time", "forecast", "Q_wait [low mod elev high]", "V", "policy (low mod elev high)"], rows)
+    table(["t", "time", "band (source)", "Q_wait [low mod elev high]", "V", "policy (low mod elev high)"], rows)
     b = p["decision"]["bellman"]
     print(f"\n    Bellman example for the most likely class now ({NAMES[b['state']]}) at t = 0:")
     print(f"      Q_wait = -{b['wait_cost']} + {vec(b['transition_row'], 3)} . {vec(b['next_values'], 2)}")
@@ -165,8 +166,8 @@ def run(city, activity):
     print(f"    Expected PM2.5 at that hour (HMM) = {r['pm25_at']} ug/m3, ventilation {r['ventilation_m3h']} m3/h")
     print("    Traffic exposure index per street kind (assumption):")
     table(["kind", "index"], [[k["id"], k["index"]] for k in KINDS])
-    print("    shortest: cost = length,          h(n) = haversine(n, goal)")
-    print(f"    cleanest: cost = length x index,  h(n) = haversine(n, goal) x {H_FACTOR}")
+    print("    shortest route:        cost = length,          h(n) = haversine(n, goal)")
+    print(f"    lower-exposure route:  cost = length x index,  h(n) = haversine(n, goal) x {H_FACTOR}")
     print(f"    h is admissible: no edge costs less than {H_FACTOR} x its straight-line length.")
 
     sub("STEPS - node expansions (A* vs Dijkstra = A* with h = 0, same cost function)")
@@ -174,7 +175,7 @@ def run(city, activity):
     for name in ("shortest", "cleanest"):
         s = r[name]
         saved = 100 * (1 - s["expanded"] / s["expanded_dijkstra"])
-        rows.append([name, s["expanded"], s["expanded_dijkstra"], f"{saved:.0f}%", s["cost"],
+        rows.append([LABEL[name], s["expanded"], s["expanded_dijkstra"], f"{saved:.0f}%", s["cost"],
                      "yes" if s["dijkstra_agrees"] else "NO"])
     table(["search", "A* expanded", "Dijkstra expanded", "saved", "optimal cost", "same cost"], rows)
 
@@ -183,13 +184,13 @@ def run(city, activity):
     for name in ("shortest", "cleanest"):
         s = r[name]
         top = ", ".join(f"{k} {100 * v:.0f}%" for k, v in list(s["by_kind"].items())[:3])
-        rows.append([name, s["distance_m"], s["minutes"], s["weighted_cost"], s["mean_index"], s["exposure_score"], top])
+        rows.append([LABEL[name], s["distance_m"], s["minutes"], s["weighted_cost"], s["mean_index"], s["exposure_score"], top])
     table(["route", "metres", "minutes", "weighted", "mean index", "exposure (ug)", "main kinds"], rows)
     c = r["comparison"]
     if c["same_route"]:
         print("    Both searches found the same route.")
     else:
-        print(f"    The cleanest route has {c['exposure_reduction_pct']}% less traffic exposure for "
+        print(f"    The lower-exposure route has {c['exposure_reduction_pct']}% less traffic exposure for "
               f"{c['extra_distance_pct']}% more walking ({c['extra_minutes']} extra minutes).")
     print("    The exposure score only compares the two routes; it is not a measured dose.")
     sub("WHY A*")

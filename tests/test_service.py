@@ -1,10 +1,18 @@
 """Service functions return the shapes of SPEC 6 for both cities, offline (bundled snapshots)."""
 
 import json
+import math
 import re
+import threading
 import unittest
+import urllib.error
+import urllib.request
+from datetime import datetime, timedelta
+from http.server import ThreadingHTTPServer
 
-from tynys import data, service
+from tynys import data, hmm, mdp, service
+from tynys.classes import block_of_hour
+from tynys.web import ApiHandler
 
 CITIES = ("astana", "almaty")
 TIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:00$")
@@ -165,7 +173,12 @@ class Plan(Base):
         status, body, _ = service.handle("plan", {"city": "astana", "deadline": "40"})
         self.assertEqual(status, 400)
         status, body, _ = service.handle("air", {"city": "paris"})
+        self.assertEqual(status, 400)
         self.assertEqual(body["error"]["code"], "unknown_city")
+        for endpoint in ("air", "plan", "places"):
+            status, body, _ = service.handle(endpoint, {})
+            self.assertEqual(status, 400)
+            self.assertEqual(body["error"]["code"], "missing_parameter")
 
 
 class Route(Base):
@@ -200,8 +213,10 @@ class Route(Base):
             ({"city": "astana", "from": "51.0,71.0", "to": "51.1283,71.4305"}, "too_far"),
             ({"city": "astana", "from": "abc", "to": "51.1283,71.4305"}, "bad_point"),
             ({"city": "astana", "to": "51.1283,71.4305"}, "missing_parameter"),
-            ({"city": "astana", "from": "51.1283,71.4305", "to": "51.1325,71.4039", "at": "2020-01-01T10:00"},
+            ({"city": "astana", "from": "51.1283,71.4305", "to": "51.1325,71.4039", "at": "tomorrow"},
              "bad_time"),
+            ({"from": "51.1283,71.4305", "to": "51.1325,71.4039"}, "missing_parameter"),
+            ({"city": "paris", "from": "51.1283,71.4305", "to": "51.1325,71.4039"}, "unknown_city"),
         ]
         for params, code in cases:
             status, body, cache = service.handle("route", params)
@@ -218,6 +233,254 @@ class Route(Base):
         self.assertEqual(r["at"], at)
         self.assertEqual(r["ventilation_m3h"], 3.0)
         self.assertAlmostEqual(r["pm25_at"], a["hmm"]["predicted"][5]["expected_pm25"], delta=0.01)
+
+
+def hour_of(time_text):
+    return int(time_text[11:13])
+
+
+def plus_hours(time_text, k):
+    t = datetime.strptime(time_text, "%Y-%m-%dT%H:%M") + timedelta(hours=k)
+    return t.strftime("%Y-%m-%dT%H:00")
+
+
+def synthetic_bundle(now_hour=5):
+    """A hand-made Open-Meteo payload whose band changes often, with "now" just before a block boundary."""
+    start = datetime(2026, 8, 10, 0)
+    n_hours = 95 * 24
+    times = [(start + timedelta(hours=i)).strftime("%Y-%m-%dT%H:00") for i in range(n_hours)]
+    pm25 = [round(2 + 30 * abs(math.sin(i * 0.37)) + (i % 7), 1) for i in range(n_hours)]
+    fetched = (start + timedelta(days=92, hours=now_hour, minutes=23)).strftime("%Y-%m-%dT%H:%M")
+    return {"city": "almaty", "source": "snapshot", "fetched_at": fetched,
+            "air": {"hourly": {"time": times, "pm2_5": pm25, "pm10": pm25}}, "weather": None}
+
+
+class TimeAlignment(Base):
+    """Recompute every time-indexed quantity from the public pieces of the responses; a one-hour shift
+    anywhere (wrong block, wrong forecast hour, wrong r_f) makes these comparisons fail."""
+
+    TOL = 2e-3  # the responses are rounded to 4 decimals
+
+    def assertVec(self, a, b, msg=None):
+        self.assertEqual(len(a), len(b))
+        for x, y in zip(a, b):
+            self.assertAlmostEqual(x, y, delta=self.TOL, msg=msg)
+
+    def check(self, a, plans):
+        h = a["hmm"]
+        A = h["transitions"]
+        B = h["emission"]
+        now = a["now"]
+
+        # readings end at now, forecast[k] is now + (k+1) h, predicted[k] likewise
+        self.assertEqual(a["readings"][-1]["time"], now)
+        for k, f in enumerate(a["forecast"]):
+            self.assertEqual(f["time"], plus_hours(now, k + 1))
+        for k, p in enumerate(h["predicted"]):
+            self.assertEqual(p["time"], plus_hours(now, k + 1))
+            self.assertEqual(p["lead_h"], k + 1)
+            self.assertEqual(p["forecast_band"], a["forecast"][k]["band"])
+
+        # forward filter over the 24 hours, recomputed with an independent loop
+        filtered = h["filtered"]
+        self.assertEqual([f["time"] for f in filtered], [r["time"] for r in a["readings"][-24:]])
+        self.assertEqual([f["obs"] for f in filtered], [r["band"] for r in a["readings"][-24:]])
+        belief = None
+        for t, f in enumerate(filtered):
+            if t == 0:
+                predicted = list(h["prior"])
+            else:
+                matrix = A[block_of_hour(hour_of(filtered[t - 1]["time"]))]  # block of the PREVIOUS hour
+                predicted = [sum(matrix[i][j] * belief[i] for i in range(4)) for j in range(4)]
+            unnorm = [B[s][f["obs"]] * predicted[s] for s in range(4)]
+            belief = [x / sum(unnorm) for x in unnorm]
+            self.assertVec(f["belief"], belief, f"filter step {t}")
+        self.assertVec(h["belief_now"], belief)
+
+        # the Bayes step is the last filter step
+        step = h["bayes_step"]
+        self.assertEqual(step["time"], now)
+        self.assertEqual(step["posterior"], h["belief_now"])
+        prev = filtered[-2]
+        matrix = A[block_of_hour(hour_of(prev["time"]))]
+        self.assertVec(step["predicted"], [sum(matrix[i][j] * prev["belief"][i] for i in range(4)) for j in range(4)])
+        self.assertEqual(step["likelihood"], [B[s][step["obs"]] for s in range(4)])
+
+        # prediction: belief_k from belief_(k-1), block of hour k-1, r_f(k), forecast band of hour k
+        belief = h["belief_now"]
+        previous_time = now
+        for k, p in enumerate(h["predicted"], start=1):
+            matrix = A[block_of_hour(hour_of(previous_time))]
+            prior_k = [sum(matrix[i][j] * belief[i] for i in range(4)) for j in range(4)]
+            r_f = max(0.5, 0.75 - 0.005 * k)
+            self.assertAlmostEqual(p["forecast_reliability"], r_f)
+            emission = hmm.emission_matrix(r_f)
+            unnorm = [emission[s][a["forecast"][k - 1]["band"]] * prior_k[s] for s in range(4)]
+            expected = [x / sum(unnorm) for x in unnorm]
+            self.assertVec(p["belief"], expected, f"prediction k={k}")
+            belief = p["belief"]
+            previous_time = p["time"]
+
+        # MDP: T_t from the block of hour t, r_f(t + 1) and the forecast band of hour t + 1
+        for plan in plans:
+            hours = plan["hours"]
+            self.assertEqual(hours[0]["time"], now)
+            self.assertEqual(hours[0]["band_source"], "reading")
+            self.assertEqual(hours[0]["forecast_band"], a["current"]["band"])
+            for t in range(len(hours) - 1):
+                self.assertEqual(hours[t + 1]["time"], plus_hours(now, t + 1))
+                self.assertEqual(hours[t + 1]["band_source"], "forecast")
+                self.assertEqual(hours[t + 1]["forecast_band"], a["forecast"][t]["band"])
+                expected = mdp.waiting_transition(A[block_of_hour(hour_of(hours[t]["time"]))],
+                                                  hmm.forecast_reliability(t + 1), a["forecast"][t]["band"])
+                for row, row_expected in zip(hours[t]["transition"], expected):
+                    self.assertVec(row, row_expected, f"T_{t}")
+                if t >= 1:
+                    self.assertAlmostEqual(hours[t]["expected_pm25"], h["predicted"][t - 1]["expected_pm25"],
+                                           delta=0.01)
+
+    def test_snapshots(self):
+        for city in CITIES:
+            self.check(service.air(city), [service.plan(city, act, deadline=12) for act in ("walk", "errand")])
+
+    def test_synthetic_series_at_block_boundaries(self):
+        original = data.get_air_bundle
+        try:
+            for now_hour in (5, 11, 17, 23):
+                bundle = synthetic_bundle(now_hour)
+                data.get_air_bundle = lambda city, offline=None, b=bundle: b
+                a = service.air("almaty")
+                self.assertEqual(hour_of(a["now"]), now_hour)
+                self.check(a, [service.plan("almaty", "walk", deadline=12)])
+        finally:
+            data.get_air_bundle = original
+
+
+class SplitSeries(unittest.TestCase):
+    def payload(self, values, fetched_at):
+        times = [f"2026-11-10T{h:02d}:00" for h in range(len(values))]
+        return {"fetched_at": fetched_at, "air": {"hourly": {"time": times, "pm2_5": values, "pm10": values}}}
+
+    def test_now_is_the_fetch_hour(self):
+        s = data.split_series(self.payload([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "2026-11-10T07:23"))
+        self.assertEqual(s["now"], "2026-11-10T07:00")
+        self.assertEqual(s["history"][-1][0], "2026-11-10T07:00")
+        self.assertEqual([r[0][11:13] for r in s["forecast"]], ["08", "09"])
+
+    def test_trailing_missing_hours_move_now_back(self):
+        s = data.split_series(self.payload([None, 2, 3, 4, 5, 6, None, None, 9, 10], "2026-11-10T07:23"))
+        self.assertEqual(s["now"], "2026-11-10T05:00")
+        self.assertEqual(s["history"][0][0], "2026-11-10T01:00")  # leading None dropped
+        self.assertEqual(s["history"][-1][1], 6)
+        self.assertEqual(s["forecast"], [])  # 06:00 is missing, so no forecast can start at now + 1 h
+
+    def test_forecast_stops_at_first_gap_and_middle_gaps_stay(self):
+        s = data.split_series(self.payload([1, 2, None, 4, 5, 6, 7, None, 9, 10], "2026-11-10T04:05"))
+        self.assertEqual(s["now"], "2026-11-10T04:00")
+        self.assertEqual([r[1] for r in s["history"]], [1, 2, None, 4, 5])
+        self.assertEqual([r[0][11:13] for r in s["forecast"]], ["05", "06"])
+
+    def test_live_path_without_network(self):
+        payload = self.payload([float(x) for x in range(1, 11)], "unused")["air"]  # the raw API response
+        payload["utc_offset_seconds"] = 18000
+        saved = (data.fetch_json, data.local_now, dict(data._cache), dict(data._failed))
+        try:
+            data.fetch_json = lambda url, timeout=None: (
+                payload if "air-quality" in url else {"current": {"temperature_2m": -3.0, "wind_speed_10m": 9.0}})
+            data.local_now = lambda offset: datetime(2026, 11, 10, 6, 41)
+            data._cache.clear()
+            data._failed.clear()
+            bundle = data.get_air_bundle("astana", offline=False)
+            self.assertEqual(bundle["source"], "live")
+            self.assertEqual(bundle["fetched_at"], "2026-11-10T06:41")
+            self.assertEqual(data.split_series(bundle)["now"], "2026-11-10T06:00")
+            self.assertEqual(data.current_weather(bundle), {"wind_kmh": 9.0, "temp_c": -3.0})
+        finally:
+            data.fetch_json, data.local_now = saved[0], saved[1]
+            data._cache.clear()
+            data._cache.update(saved[2])
+            data._failed.clear()
+            data._failed.update(saved[3])
+
+
+class RouteTime(Base):
+    def test_past_and_far_future_at_are_clamped(self):
+        a = service.air("astana")
+        places = {p["id"]: p for p in service.load_places("astana")}
+        p, q = places["baiterek"], places["khan-shatyr"]
+        frm, to = f"{p['lat']},{p['lon']}", f"{q['lat']},{q['lon']}"
+        r = service.route("astana", frm, to, "walk", plus_hours(a["now"], -3))
+        self.assertEqual(r["at"], a["now"])
+        self.assertTrue(r["at_clamped"])
+        r = service.route("astana", frm, to, "walk", "2099-01-01T10:00")
+        self.assertEqual(r["at"], a["hmm"]["predicted"][-1]["time"])
+        self.assertTrue(r["at_clamped"])
+        r = service.route("astana", frm, to, "walk", a["forecast"][2]["time"][:13] + ":40")
+        self.assertEqual(r["at"], a["forecast"][2]["time"])
+        self.assertFalse(r["at_clamped"])
+        r = service.route("astana", frm, to, "walk")
+        self.assertEqual(r["at"], a["now"])
+        self.assertFalse(r["at_clamped"])
+
+
+class QuietHandler(ApiHandler):
+    def log_message(self, fmt, *args):
+        pass
+
+
+class Http(unittest.TestCase):
+    """The real handler on an ephemeral port (not 8787)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), QuietHandler)
+        cls.base = f"http://127.0.0.1:{cls.server.server_address[1]}"
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def request(self, path, method="GET"):
+        req = urllib.request.Request(self.base + path, method=method)
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        try:
+            with opener.open(req, timeout=10) as response:
+                return response.status, dict(response.headers), response.read()
+        except urllib.error.HTTPError as error:
+            return error.code, dict(error.headers), error.read()
+
+    def test_get_head_options(self):
+        status, headers, body = self.request("/api/meta")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Cache-Control"], service.CACHE_LONG)
+        self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
+        self.assertEqual(int(headers["Content-Length"]), len(body))
+        status, head_headers, head_body = self.request("/api/meta", "HEAD")
+        self.assertEqual(status, 200)
+        self.assertEqual(head_body, b"")
+        self.assertEqual(head_headers["Content-Length"], headers["Content-Length"])
+        self.assertEqual(head_headers["Content-Type"], "application/json; charset=utf-8")
+        status, headers, body = self.request("/api/air", "OPTIONS")
+        self.assertEqual(status, 204)
+        self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
+        self.assertIn("GET", headers["Access-Control-Allow-Methods"])
+
+    def test_errors_and_cache_headers(self):
+        status, headers, body = self.request("/api/air")
+        self.assertEqual(status, 400)
+        self.assertEqual(json.loads(body)["error"]["code"], "missing_parameter")
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        status, headers, _ = self.request("/api/plan?city=almaty")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Cache-Control"], "public, s-maxage=900, stale-while-revalidate=300")
+        # offline, a search is answered from the bundled places and must not be cached for a day
+        status, headers, body = self.request("/api/places?city=astana&q=khan")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["source"], "local")
+        self.assertEqual(headers["Cache-Control"], "no-store")
 
 
 class Places(Base):

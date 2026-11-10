@@ -5,15 +5,17 @@ the tests and the console demo all call these same functions.
 """
 
 import json
+import math
 import os
 import urllib.parse
 import urllib.request
+from datetime import datetime
 
 from tynys import astar, data, hmm, mdp
 from tynys.classes import (ACTIVITIES, ACTIVITY_BY_ID, ASSUMPTIONS, CITIES, CITY_BY_ID, CLASSES, DEFAULTS,
                            H_FACTOR, HARM, KIND_IDS, KIND_INDEX, KINDS, LIMITS, MAX_SNAP_M, MAX_TRIP_M,
                            RUN_M_PER_MIN, TIMEZONE, USER_AGENT, VENTILATION_RUN, VENTILATION_WALK,
-                           WALK_M_PER_MIN, band, block_of_hour)
+                           WALK_M_PER_MIN, band)
 from tynys.graph import load_graph
 
 DATA_DIR = data.DATA_DIR
@@ -103,7 +105,7 @@ def air_model(city, reliability=DEFAULTS["reliability"], offline=None):
     emission = hmm.emission_matrix(reliability)
 
     # agreement: filter the whole history, compare the most likely class with the reading's band
-    all_beliefs = hmm.forward(bands, prior, hmm.transitions_for_hours(matrices, hours[:-1]), emission)
+    all_beliefs = hmm.forward(bands, prior, hmm.transitions_between(matrices, hours), emission)
     agree = 0
     counted = 0
     for belief, b in zip(all_beliefs, bands):
@@ -115,7 +117,7 @@ def air_model(city, reliability=DEFAULTS["reliability"], offline=None):
     # filtering and decoding over the last 24 model readings
     obs24 = bands[-24:]
     hours24 = hours[-24:]
-    trans24 = hmm.transitions_for_hours(matrices, hours24[:-1])
+    trans24 = hmm.transitions_between(matrices, hours24)
     beliefs24 = hmm.forward(obs24, prior, trans24, emission)
     path24 = hmm.viterbi(obs24, prior, trans24, emission)
     belief_now = beliefs24[-1]
@@ -129,8 +131,9 @@ def air_model(city, reliability=DEFAULTS["reliability"], offline=None):
 
     # prediction for the next hours with the forecast as a weaker reading
     forecast_bands = [band(row[1]) for row in forecast]
-    hours_before = [hours[-1]] + [int(row[0][11:13]) for row in forecast[:-1]]
-    ahead = hmm.predict_ahead(belief_now, hmm.transitions_for_hours(matrices, hours_before), forecast_bands)
+    # hours now, now+1, ..., now+48 -> 48 steps; step k-1 -> k uses the block of hour k-1
+    hours_ahead = [hours[-1]] + [int(row[0][11:13]) for row in forecast]
+    ahead = hmm.predict_ahead(belief_now, hmm.transitions_between(matrices, hours_ahead), forecast_bands)
     for k, item in enumerate(ahead):
         item["time"] = forecast[k][0]
         item["expected_pm25"] = hmm.expected_pm25(item["belief"], rep)
@@ -216,10 +219,12 @@ def plan(city, activity="walk", duration=None, deadline=DEFAULTS["deadline_hours
     hour_now = int(m["now"][11:13])
     hour_of = [hour_now] + [int(row[0][11:13]) for row in m["forecast"]]
     time_of = [m["now"]] + [row[0] for row in m["forecast"]]
+    # T_t for t = 0..H-1: A of the block of hour t (origin hour), the forecast trust r_f(t+1) and the
+    # forecast band of hour t+1 (m["forecast_bands"][t] is the forecast for now + (t+1) h)
+    steps = hmm.transitions_between(m["model"]["transitions"], hour_of[:horizon + 1])
     transitions = []
     for t in range(horizon):
-        a = m["model"]["transitions"][block_of_hour(hour_of[t])]
-        transitions.append(mdp.waiting_transition(a, hmm.forecast_reliability(t + 1), m["forecast_bands"][t]))
+        transitions.append(mdp.waiting_transition(steps[t], hmm.forecast_reliability(t + 1), m["forecast_bands"][t]))
 
     stages = mdp.backward_induction(rewards, transitions, wait_cost, act["must"])
     belief = m["belief_now"]
@@ -232,15 +237,18 @@ def plan(city, activity="walk", duration=None, deadline=DEFAULTS["deadline_hours
     cumulative = 0.0
     for t in range(horizon + 1):
         cumulative += p_go[t]
-        if t == 0:
+        if t == 0:  # hour 0 is now: the band of the current model reading, not a forecast
             f_band = m["bands"][-1]
+            band_source = "reading"
             expected = hmm.expected_pm25(belief, m["rep"])
         else:
             f_band = m["forecast_bands"][t - 1]
+            band_source = "forecast"
             expected = m["predicted"][t - 1]["expected_pm25"]
         st = stages[t]
         hours.append({
-            "t": t, "time": time_of[t], "forecast_band": f_band, "expected_pm25": round(expected, 2),
+            "t": t, "time": time_of[t], "forecast_band": f_band, "band_source": band_source,
+            "expected_pm25": round(expected, 2),
             "transition": r4m(transitions[t]) if t < horizon else None,
             "q_go": r4(st["q_go"]), "q_wait": None if st["q_wait"] is None else r4(st["q_wait"]),
             "value": r4(st["value"]), "policy": st["policy"],
@@ -344,15 +352,21 @@ def route(city, from_point, to_point, activity="walk", at=None, reliability=DEFA
     # PM2.5 expected at the chosen hour (from the HMM belief), for the exposure score
     m = air_model(city, reliability, offline)
     now = m["now"]
+    allowed = [now] + [p["time"] for p in m["predicted"][:48]]  # consecutive hours now .. now + 48 h
+    at_clamped = False
     if at is None or at == "":
         at_hour = now
     else:
-        if len(at) < 13 or at[10] != "T":
-            raise ApiError(400, "bad_time", "'at' must look like 2026-11-10T15:00.")
-        at_hour = at[:13] + ":00"
-    allowed = [now] + [p["time"] for p in m["predicted"][:48]]
-    if at_hour not in allowed:
-        raise ApiError(400, "bad_time", f"'at' must be between {allowed[0]} and {allowed[-1]} (local time).")
+        try:
+            at_hour = datetime.strptime(at[:13], "%Y-%m-%dT%H").strftime("%Y-%m-%dT%H:00")
+        except ValueError:
+            raise ApiError(400, "bad_time", "'at' must look like 2026-11-10T15:00 (local time).")
+        # A plan computed a little earlier (another function instance, a CDN copy) can point to an hour that
+        # is already past here: use the nearest hour we have instead of failing.
+        if at_hour < allowed[0]:
+            at_hour, at_clamped = allowed[0], True
+        elif at_hour > allowed[-1]:
+            at_hour, at_clamped = allowed[-1], True
     lead = allowed.index(at_hour)
     if lead == 0:
         pm25 = hmm.expected_pm25(m["belief_now"], m["rep"])
@@ -377,7 +391,7 @@ def route(city, from_point, to_point, activity="walk", at=None, reliability=DEFA
         summary["dijkstra_agrees"] = abs(found["cost"] - dijkstra["cost"]) <= 1e-6 * max(1.0, dijkstra["cost"])
         if name == "cleanest":
             order = found["order"]
-            step = max(1, -(-len(order) // EXPLORED_MAX_POINTS))  # ceil division
+            step = max(1, math.ceil(len(order) / EXPLORED_MAX_POINTS))  # keep at most 1500 points
             summary["explored"] = [[round(g.lat[n], 5), round(g.lon[n], 5)] for n in order[::step]]
         summary["_path"] = found["path"]
         results[name] = summary
@@ -399,7 +413,7 @@ def route(city, from_point, to_point, activity="walk", at=None, reliability=DEFA
                  "snap_m": round(start_d)},
         "to": {"lat": to_lat, "lon": to_lon, "snapped": [round(g.lat[goal], 6), round(g.lon[goal], 6)],
                "snap_m": round(goal_d)},
-        "at": at_hour, "pm25_at": round(pm25, 2), "ventilation_m3h": ventilation, "h_factor": H_FACTOR,
+        "at": at_hour, "at_clamped": at_clamped, "pm25_at": round(pm25, 2), "ventilation_m3h": ventilation, "h_factor": H_FACTOR,
         "shortest": sh, "cleanest": cl, "comparison": comparison,
     }
 
@@ -464,7 +478,7 @@ def places(city, q="", offline=None):
 # ---------------------------------------------------------------- query-string dispatch (used by api/ and devserver)
 
 CACHE_LONG = "public, s-maxage=86400, stale-while-revalidate=3600"
-CACHE_SHORT = "public, s-maxage=900, stale-while-revalidate=3600"
+CACHE_SHORT = "public, s-maxage=900, stale-while-revalidate=300"  # "now" is at most ~20 min old
 
 
 def _float(params, name, default, low=None, high=None):
@@ -475,7 +489,7 @@ def _float(params, name, default, low=None, high=None):
         value = float(text)
     except ValueError:
         raise ApiError(400, "bad_parameter", f"'{name}' must be a number.")
-    if value != value or (low is not None and value < low) or (high is not None and value > high):
+    if math.isnan(value) or (low is not None and value < low) or (high is not None and value > high):
         raise ApiError(400, "bad_parameter", f"'{name}' must be between {low} and {high}.")
     return value
 
@@ -494,7 +508,11 @@ def handle(endpoint, params):
     try:
         if endpoint == "meta":
             return 200, meta(), CACHE_LONG
-        city = params.get("city", "astana")
+        city = params.get("city")
+        if not city:
+            raise ApiError(400, "missing_parameter", "'city' is required: "
+                           + ", ".join(c["id"] for c in CITIES) + ".")
+        check_city(city)
         reliability = _float(params, "reliability", DEFAULTS["reliability"], *LIMITS["reliability"])
         if endpoint == "air":
             return 200, air(city, reliability), CACHE_SHORT
@@ -513,7 +531,10 @@ def handle(endpoint, params):
             return 200, route(city, params["from"], params["to"], params.get("activity", "walk"),
                               params.get("at"), reliability), CACHE_SHORT
         if endpoint == "places":
-            return 200, places(city, params.get("q", "")), CACHE_LONG
+            result = places(city, params.get("q", ""))
+            # a search answered from the bundled list because Photon failed must not be cached for a day
+            fallback = result["source"] == "local" and params.get("q", "").strip()
+            return 200, result, ("no-store" if fallback else CACHE_LONG)
         raise ApiError(404, "not_found", f"Unknown endpoint '{endpoint}'.")
     except ApiError as error:
         return error.status, error.payload(), "no-store"

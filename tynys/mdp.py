@@ -7,6 +7,10 @@ Solved by backward induction (finite-horizon value iteration with the Bellman eq
 
 from tynys.hmm import emission_matrix, normalise
 
+# Floating-point slack on the 50 % threshold: a cumulative sum such as 0.3 + 0.2 can come out as
+# 0.49999999999999994 and must still count as reaching one half.
+HALF_TOLERANCE = 1e-12
+
 ACTIONS = ["go", "wait", "skip"]  # also the tie-breaking order: go, then wait, then skip
 
 
@@ -132,6 +136,6 @@ def median_go_hour(p_go):
     cumulative = 0.0
     for t, p in enumerate(p_go):
         cumulative += p
-        if cumulative >= 0.5 - 1e-12:
+        if cumulative >= 0.5 - HALF_TOLERANCE:
             return t
     return None

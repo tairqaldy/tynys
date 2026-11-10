@@ -20,7 +20,11 @@ class ApiHandler(BaseHTTPRequestHandler):
             return parts[1].removesuffix(".py")
         return ""
 
-    def send_json(self, status, payload, cache_control):
+    def respond(self, with_body):
+        """Run the endpoint and send the JSON answer; HEAD sends the same headers without the body."""
+        url = urlsplit(self.path)
+        params = {k: v[0] for k, v in parse_qs(url.query).items()}
+        status, payload, cache_control = service.handle(self.endpoint_name(url.path), params)
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -28,18 +32,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", cache_control)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
-        self.wfile.write(body)
+        if with_body:
+            self.wfile.write(body)
 
     def do_GET(self):
-        url = urlsplit(self.path)
-        params = {k: v[0] for k, v in parse_qs(url.query).items()}
-        status, payload, cache_control = service.handle(self.endpoint_name(url.path), params)
-        self.send_json(status, payload, cache_control)
+        self.respond(with_body=True)
+
+    def do_HEAD(self):
+        self.respond(with_body=False)
 
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Max-Age", "86400")
+        self.send_header("Content-Length", "0")
         self.end_headers()
