@@ -1,0 +1,127 @@
+{
+ "city": "almaty",
+ "source": "Photon geocoder (komoot) over OpenStreetMap data",
+ "built_at": "2026-11-10",
+ "places": [
+  {
+   "id": "republic-square",
+   "name": "Republic Square",
+   "lat": 43.238884,
+   "lon": 76.945474,
+   "geocoder_name": "Republic Square",
+   "osm": "W/597984193",
+   "osm_tag": "place=square",
+   "snap_m": 13
+  },
+  {
+   "id": "zenkov-cathedral",
+   "name": "Ascension Cathedral",
+   "lat": 43.25879,
+   "lon": 76.953113,
+   "geocoder_name": "Ascension Cathedral",
+   "osm": "W/50648292",
+   "osm_tag": "amenity=place_of_worship",
+   "snap_m": 13
+  },
+  {
+   "id": "green-bazaar",
+   "name": "Green Bazaar",
+   "lat": 43.263676,
+   "lon": 76.955197,
+   "geocoder_name": "Green bazar",
+   "osm": "R/20040804",
+   "osm_tag": "amenity=marketplace",
+   "snap_m": 66
+  },
+  {
+   "id": "arbat",
+   "name": "Arbat (Zhibek Zholy)",
+   "lat": 43.261691,
+   "lon": 76.941645,
+   "geocoder_name": "Арбат",
+   "osm": "R/3076212",
+   "osm_tag": "highway=pedestrian",
+   "snap_m": 34
+  },
+  {
+   "id": "central-park",
+   "name": "Central Park",
+   "lat": 43.261645,
+   "lon": 76.969274,
+   "geocoder_name": "Орталық Демалыс және Мәдениет Саябағы",
+   "osm": "W/232715414",
+   "osm_tag": "leisure=park",
+   "snap_m": 54
+  },
+  {
+   "id": "abay-opera",
+   "name": "Abai Opera and Ballet Theatre",
+   "lat": 43.248652,
+   "lon": 76.945791,
+   "geocoder_name": "Kazakh State Academic Opera and Ballet House named after Abay",
+   "osm": "R/6609239",
+   "osm_tag": "amenity=theatre",
+   "snap_m": 32
+  },
+  {
+   "id": "dostyk-plaza",
+   "name": "Dostyk Plaza",
+   "lat": 43.233408,
+   "lon": 76.956782,
+   "geocoder_name": "Dostyk Plaza",
+   "osm": "R/10060166",
+   "osm_tag": "shop=mall",
+   "snap_m": 55
+  },
+  {
+   "id": "kbtu",
+   "name": "Kazakh-British Technical University",
+   "lat": 43.255726,
+   "lon": 76.943133,
+   "geocoder_name": "Kazakh-British Technical University",
+   "osm": "R/3206854",
+   "osm_tag": "amenity=university",
+   "snap_m": 18
+  },
+  {
+   "id": "almaty-2",
+   "name": "Almaty-2 station",
+   "lat": 43.274,
+   "lon": 76.939025,
+   "geocoder_name": "Almaty-2",
+   "osm": "N/4020137342",
+   "osm_tag": "railway=station",
+   "snap_m": 41
+  },
+  {
+   "id": "kaznu",
+   "name": "Al-Farabi Kazakh National University",
+   "lat": 43.220567,
+   "lon": 76.923318,
+   "geocoder_name": "Al-Farabi Kazakh National University",
+   "osm": "W/360167896",
+   "osm_tag": "amenity=university",
+   "snap_m": 42
+  },
+  {
+   "id": "esentai-mall",
+   "name": "Esentai Mall",
+   "lat": 43.218594,
+   "lon": 76.928018,
+   "geocoder_name": "Esentai Mall СО",
+   "osm": "W/1458250211",
+   "osm_tag": "shop=mall",
+   "snap_m": 62
+  },
+  {
+   "id": "kok-tobe",
+   "name": "Kok-Tobe cable car (lower station)",
+   "lat": 43.242391,
+   "lon": 76.958981,
+   "geocoder_name": "Kok-Tobe cable car station (lower)",
+   "osm": "W/51155893",
+   "osm_tag": "aerialway=station",
+   "snap_m": 19
+  }
+ ]
+}

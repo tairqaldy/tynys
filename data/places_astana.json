@@ -1,0 +1,127 @@
+{
+ "city": "astana",
+ "source": "Photon geocoder (komoot) over OpenStreetMap data",
+ "built_at": "2026-11-10",
+ "places": [
+  {
+   "id": "baiterek",
+   "name": "Baiterek",
+   "lat": 51.128286,
+   "lon": 71.430456,
+   "geocoder_name": "Bayterek",
+   "osm": "W/230401645",
+   "osm_tag": "historic=monument",
+   "snap_m": 6
+  },
+  {
+   "id": "khan-shatyr",
+   "name": "Khan Shatyr",
+   "lat": 51.132505,
+   "lon": 71.403861,
+   "geocoder_name": "Khan Shatyr",
+   "osm": "W/460703779",
+   "osm_tag": "shop=mall",
+   "snap_m": 85
+  },
+  {
+   "id": "expo",
+   "name": "EXPO 2017 area",
+   "lat": 51.092097,
+   "lon": 71.414625,
+   "geocoder_name": "EXPO-2017",
+   "osm": "W/1456208623",
+   "osm_tag": "place=quarter",
+   "snap_m": 8
+  },
+  {
+   "id": "alem-ai",
+   "name": "Alem.ai",
+   "lat": 51.089233,
+   "lon": 71.416235,
+   "geocoder_name": "Alem.ai",
+   "osm": "W/454857501",
+   "osm_tag": "office=yes",
+   "snap_m": 44
+  },
+  {
+   "id": "nazarbayev-university",
+   "name": "Nazarbayev University",
+   "lat": 51.092074,
+   "lon": 71.397648,
+   "geocoder_name": "Nazarbayev University",
+   "osm": "W/424894683",
+   "osm_tag": "amenity=university",
+   "snap_m": 49
+  },
+  {
+   "id": "ak-orda",
+   "name": "Ak Orda",
+   "lat": 51.125797,
+   "lon": 71.446351,
+   "geocoder_name": "Ak Orda Presidential Palace",
+   "osm": "W/166198046",
+   "osm_tag": "office=government",
+   "snap_m": 29
+  },
+  {
+   "id": "hazret-sultan",
+   "name": "Hazret Sultan Mosque",
+   "lat": 51.12545,
+   "lon": 71.472142,
+   "geocoder_name": "Hazrat Sultan Mosque",
+   "osm": "W/240860325",
+   "osm_tag": "amenity=place_of_worship",
+   "snap_m": 62
+  },
+  {
+   "id": "palace-of-peace",
+   "name": "Palace of Peace and Reconciliation",
+   "lat": 51.123123,
+   "lon": 71.463456,
+   "geocoder_name": "Palace of Peace and Reconciliation",
+   "osm": "W/166197368",
+   "osm_tag": "amenity=community_centre",
+   "snap_m": 9
+  },
+  {
+   "id": "astana-opera",
+   "name": "Astana Opera",
+   "lat": 51.13546,
+   "lon": 71.410659,
+   "geocoder_name": "Astana Opera",
+   "osm": "W/917478479",
+   "osm_tag": "amenity=theatre",
+   "snap_m": 89
+  },
+  {
+   "id": "mega-silk-way",
+   "name": "Mega Silk Way",
+   "lat": 51.089086,
+   "lon": 71.407286,
+   "geocoder_name": "Mega Silk Way",
+   "osm": "W/499328514",
+   "osm_tag": "shop=mall",
+   "snap_m": 84
+  },
+  {
+   "id": "presidential-park",
+   "name": "Presidential Park",
+   "lat": 51.113513,
+   "lon": 71.444306,
+   "geocoder_name": "Presidential Park",
+   "osm": "W/243041606",
+   "osm_tag": "leisure=park",
+   "snap_m": 10
+  },
+  {
+   "id": "astana-arena",
+   "name": "Astana Arena",
+   "lat": 51.108392,
+   "lon": 71.402867,
+   "geocoder_name": "Astana Arena",
+   "osm": "W/1460088073",
+   "osm_tag": "leisure=stadium",
+   "snap_m": 86
+  }
+ ]
+}

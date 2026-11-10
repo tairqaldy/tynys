@@ -1,0 +1,9 @@
+{
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "outside_area",
+   "message": "The start point is outside the mapped area (lat 51.085..51.18, lon 71.385..71.485)."
+  }
+ }
+}

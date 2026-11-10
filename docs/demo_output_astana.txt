@@ -1,0 +1,196 @@
+$ python -m tynys.demo --city astana
+Tynys console demo - Astana
+Local time 2026-11-10T11:00 (Asia/Almaty), data source: live
+PM2.5 values are CAMS model readings served by Open-Meteo (~40 km grid), not sensor measurements.
+
+==============================================================================
+1. HIDDEN MARKOV MODEL - how is the air right now?
+==============================================================================
+
+  INPUT
+    2220 hourly model readings (92 days); the last 24 are filtered.
+    Classes: low <= 5, moderate 5-15, elevated 15-25, high > 25 ug/m3 (hourly PM2.5).
+    Reading trust r = 0.8 (assumption), prior pi = [0.345 0.566 0.070 0.019]
+    Transition matrix A_morning (rows: class now, columns: class next hour), add-one smoothed:
+          low    mod    elev   high 
+    ----  -----  -----  -----  -----
+    low   0.888  0.102  0.005  0.005
+    mod   0.083  0.901  0.013  0.003
+    elev  0.028  0.361  0.583  0.028
+    high  0.022  0.022  0.178  0.778
+    raw counts N_morning:
+          low  mod  elev  high
+    ----  ---  ---  ----  ----
+    low   182  20   0     0   
+    mod   25   282  3     0   
+    elev  0    12   20    0   
+    high  0    0    4     9   
+    Rows with < 20 counts use the pooled all-day row instead: night row high (13 counts), morning row high (13 counts), day row elev (7 counts), day row high (0 counts), evening row high (15 counts)
+    Emission B(r)[true class][reading band]:
+          low    mod    elev   high 
+    ----  -----  -----  -----  -----
+    low   0.800  0.200  0.000  0.000
+    mod   0.100  0.800  0.100  0.000
+    elev  0.000  0.100  0.800  0.100
+    high  0.000  0.000  0.200  0.800
+
+  STEPS - forward filter, last 12 of the 24 hours (belief = P(class | readings so far))
+    time   PM2.5  reading  belief [low mod elev high]  Viterbi
+    -----  -----  -------  --------------------------  -------
+    00:00  3.8    low      [0.815 0.185 0.000 0.000]   low    
+    01:00  2.9    low      [0.966 0.034 0.000 0.000]   low    
+    02:00  2.6    low      [0.987 0.013 0.000 0.000]   low    
+    03:00  2.6    low      [0.990 0.010 0.000 0.000]   low    
+    04:00  2.6    low      [0.990 0.010 0.000 0.000]   low    
+    05:00  2.6    low      [0.990 0.010 0.000 0.000]   low    
+    06:00  2.6    low      [0.990 0.010 0.000 0.000]   low    
+    07:00  3.2    low      [0.985 0.015 0.000 0.000]   low    
+    08:00  3.9    low      [0.984 0.016 0.000 0.000]   low    
+    09:00  4.3    low      [0.984 0.016 0.000 0.000]   low    
+    10:00  4.8    low      [0.984 0.016 0.000 0.000]   low    
+    11:00  5.0    low      [0.984 0.016 0.000 0.000]   low    
+
+    Bayes update for the last hour (2026-11-10T11:00, reading band low):
+      predicted prior  A^T belief(t-1) = [0.8754 0.1148 0.0050 0.0048]
+      likelihood       B[:, reading]   = [0.8000 0.1000 0.0000 0.0000]
+      unnormalised     product         = [0.7003 0.0115 0.0000 0.0000]
+      evidence         sum             = 0.7118
+      posterior        product / sum   = [0.9839 0.0161 0.0000 0.0000]
+
+  OUTPUT
+    Model reading now: 5.0 ug/m3 -> band low
+    belief_now = [0.9839 0.0161 0.0000 0.0000]  ->  most likely class: low
+    Viterbi sequence (24 h): low low low low low mod mod mod mod mod mod low low low low low low low low low low low low low
+    Filter agrees with the reading's band in 91.9% of history hours (high by design: it mostly smooths isolated jumps).
+    Next 12 hours, forecast used as a weaker reading (trust r_f(k) = max(0.5, 0.75 - 0.005k)):
+    time   forecast band  r_f    belief [low mod elev high]  E[PM2.5]
+    -----  -------------  -----  --------------------------  --------
+    12:00  mod            0.745  [0.721 0.277 0.002 0.000]   4.56    
+    13:00  low            0.74   [0.907 0.092 0.000 0.000]   3.64    
+    14:00  low            0.735  [0.949 0.051 0.000 0.000]   3.45    
+    15:00  low            0.73   [0.956 0.044 0.000 0.000]   3.41    
+    16:00  mod            0.725  [0.609 0.389 0.002 0.000]   5.1     
+    17:00  mod            0.72   [0.320 0.676 0.004 0.000]   6.51    
+    18:00  elev           0.715  [0.000 0.834 0.156 0.010]   9.8     
+    19:00  elev           0.71   [0.000 0.491 0.488 0.021]   13.39   
+    20:00  high           0.705  [0.000 0.000 0.677 0.323]   23.26   
+    21:00  high           0.7    [0.000 0.000 0.303 0.697]   29.46   
+    22:00  high           0.695  [0.000 0.000 0.123 0.877]   32.46   
+    23:00  high           0.69   [0.000 0.000 0.075 0.925]   33.25   
+
+  WHY AN HMM
+    The true class on your street is hidden and the grid value is a noisy reading of it; Bayes
+    filtering combines what usually happens next (transitions) with each new reading (emission).
+
+==============================================================================
+2. MARKOV DECISION PROCESS - when should I go out?
+==============================================================================
+
+  INPUT
+    Activity walk: 45 min, intensity 1.0, benefit 5, sensitivity 1, must = False
+    Deadline H = 8 h, waiting costs 0.3 per hour, harm per hour = [0, 1, 4, 10] (assumptions)
+    R_go(s) = benefit - harm[s] * hours * intensity * sensitivity = [5.00 4.25 2.00 -2.50]
+    belief_now (from the HMM) = [0.9839 0.0161 0.0000 0.0000]
+    T_0 = P(class next hour | class now, next forecast band moderate):
+          low    mod    elev   high 
+    ----  -----  -----  -----  -----
+    low   0.747  0.251  0.002  0.000
+    mod   0.030  0.967  0.002  0.000
+    elev  0.020  0.768  0.212  0.000
+    high  0.126  0.369  0.505  0.000
+
+  STEPS - backward induction from t = H down to t = 0
+    Q_go = R_go;  Q_wait = -wait_cost + sum_s' T_t[s][s'] V_(t+1)(s');  V = max (ties: go, wait, skip)
+    t  time   forecast  Q_wait [low mod elev high]  V                      policy (low mod elev high)
+    -  -----  --------  --------------------------  ---------------------  --------------------------
+    8  19:00  elev      -                           [5.00 4.25 2.00 0.00]  go go go skip             
+    7  18:00  elev      [3.20 3.49 1.76 0.45]       [5.00 4.25 2.00 0.45]  go go go wait             
+    6  17:00  mod       [3.54 3.61 1.77 0.74]       [5.00 4.25 2.00 0.74]  go go go wait             
+    5  16:00  mod       [4.45 3.96 3.03 2.86]       [5.00 4.25 3.03 2.86]  go go wait wait           
+    4  15:00  low       [4.44 3.97 3.46 3.41]       [5.00 4.25 3.46 3.41]  go go wait wait           
+    3  14:00  low       [4.67 4.20 4.06 4.58]       [5.00 4.25 4.06 4.58]  go go wait wait           
+    2  13:00  low       [4.67 4.21 4.06 4.59]       [5.00 4.25 4.06 4.59]  go go wait wait           
+    1  12:00  mod       [4.68 4.21 4.06 4.59]       [5.00 4.25 4.06 4.59]  go go wait wait           
+    0  11:00  low       [4.51 3.97 3.93 3.95]       [5.00 4.25 3.93 3.95]  go go wait wait           
+
+    Bellman example for the most likely class now (low) at t = 0:
+      Q_wait = -0.3 + [0.747 0.251 0.002 0.000] . [5.00 4.25 4.06 4.59]
+             = -0.3 + 4.8102 = 4.5102
+      Q_go   = 5.0000
+
+  OUTPUT
+    Belief-weighted (QMDP): Q(go) = 4.9879, Q(wait) = 4.5015, Q(skip) = 0.0
+    Decision: GO  ->  "Go now"
+    Probability of going in each hour under the policy:
+    t  time   p_go   cumulative
+    -  -----  -----  ----------
+    0  11:00  1.000  1.000     
+    1  12:00  0.000  1.000     
+    2  13:00  0.000  1.000     
+    3  14:00  0.000  1.000     
+    4  15:00  0.000  1.000     
+    5  16:00  0.000  1.000     
+    6  17:00  0.000  1.000     
+    7  18:00  0.000  1.000     
+    8  19:00  0.000  1.000     
+    p_skip = 0.000
+
+  WHY AN MDP
+    Going now versus waiting is a sequence of decisions under uncertain future air; backward
+    induction weighs the benefit now against the expected value of waiting one more hour.
+
+==============================================================================
+3. A* SEARCH - which way should I walk?
+==============================================================================
+
+  INPUT
+    From Khan Shatyr (51.132505, 71.403861) to Ak Orda (51.125797, 71.446351)
+    Snapped to street nodes 85 m and 29 m away.
+    Hour 2026-11-10T11:00 (now)
+    Expected PM2.5 at that hour (HMM) = 3.28 ug/m3, ventilation 1.2 m3/h
+    Traffic exposure index per street kind (assumption):
+    kind                index
+    ------------------  -----
+    major               2.0  
+    secondary           1.6  
+    tertiary            1.3  
+    street              1.0  
+    path                0.8  
+    park                0.6  
+    roadside_major      1.8  
+    roadside_secondary  1.4  
+    shortest: cost = length,          h(n) = haversine(n, goal)
+    cleanest: cost = length x index,  h(n) = haversine(n, goal) x 0.6
+    h is admissible: no edge costs less than 0.6 x its straight-line length.
+
+  STEPS - node expansions (A* vs Dijkstra = A* with h = 0, same cost function)
+    search    A* expanded  Dijkstra expanded  saved  optimal cost  same cost
+    --------  -----------  -----------------  -----  ------------  ---------
+    shortest  4402         23491              81%    3454.4        yes      
+    cleanest  7090         18900              62%    2911.4        yes      
+
+  OUTPUT
+    route     metres  minutes  weighted  mean index  exposure (ug)  main kinds                             
+    --------  ------  -------  --------  ----------  -------------  ---------------------------------------
+    shortest  3454    43.2     4886      1.414       4.0            secondary 67%, street 12%, tertiary 12%
+    cleanest  3556    44.4     2911      0.819       2.39           path 73%, park 15%, street 8%          
+    The cleanest route has 40.4% less traffic exposure for 2.9% more walking (1.3 extra minutes).
+    The exposure score only compares the two routes; it is not a measured dose.
+
+  WHY A*
+    Route finding is a search over the street graph; an admissible, consistent heuristic lets A*
+    return the same optimal route as Dijkstra while expanding far fewer nodes.
+
+==============================================================================
+ASSUMPTIONS
+==============================================================================
+  - PM2.5 values are model readings from the CAMS global model (~40 km grid) served by Open-Meteo, not sensor measurements; past hours are earlier model runs.
+  - Class cut-points 5 / 15 / 25 ug/m3 come from WHO 2021 daily and annual guidance and are applied to hourly values; WHO defines no hourly PM2.5 guideline.
+  - Reading trust r (default 0.8) is a setting, not estimated from data: the probability that the grid value's band is the true class on your street.
+  - Forecast trust r_f(k) = max(0.5, 0.75 - 0.005 k) for an hour k hours ahead.
+  - Transitions are learned from model readings: the reading's band stands in for the hidden class.
+  - Harm per hour [0, 1, 4, 10], activity benefits and the waiting cost are utility points chosen by hand.
+  - The action now uses the QMDP rule: it assumes the uncertainty about the class disappears after one step.
+  - The traffic exposure index per street kind and the 25 m roadside rule are a proxy for traffic pollution next to busy roads, not measured values.
+  - Ventilation 1.2 m3/h walking and 3.0 m3/h running (US EPA Exposure Factors Handbook 2011, ch. 6); walking 80 m/min, running 160 m/min.
+  - Not medical advice.

@@ -1,0 +1,9 @@
+{
+ "status": 400,
+ "body": {
+  "error": {
+   "code": "unknown_activity",
+   "message": "Unknown activity 'swim'. Use one of: walk, run, kids, errand."
+  }
+ }
+}
