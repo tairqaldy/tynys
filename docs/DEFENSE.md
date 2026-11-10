@@ -18,6 +18,9 @@ the structure is the same.
 
 ## Demo script (about five minutes)
 
+Live site: <https://tynys-blond.vercel.app>. A prepared link that opens Almaty with a child selected:
+<https://tynys-blond.vercel.app/?city=almaty&activity=kids&duration=60&deadline=8&wait=0.3>
+
 1. **Open the site, Almaty.** Read the sentence at the top. Point at the belief bars: "these four
    numbers are the HMM's output, a probability for each class, not just one label."
 2. **The 24-hour strip.** "Top row is what the model reported each hour, bottom row is the Viterbi

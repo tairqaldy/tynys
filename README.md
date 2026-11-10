@@ -12,7 +12,7 @@ It answers three questions you have on a smoggy day, each with a different AI al
 
 Final project for **AIF1303 AI Fundamentals**, QAIRU, trimester 1, 2026–27 — Tair Kaldybayev.
 
-<!-- LIVE-LINK -->
+**Live: <https://tynys-blond.vercel.app>** · [defense notes](docs/DEFENSE.md) · [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
 
 ![Tynys: the Now, When and Which way sections beside the map](docs/screenshots/overview.png)
 
