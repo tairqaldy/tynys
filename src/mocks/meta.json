@@ -1,0 +1,335 @@
+{
+ "cities": [
+  {
+   "id": "astana",
+   "name": "Astana",
+   "center": [
+    51.1282,
+    71.4304
+   ],
+   "bbox": [
+    51.085,
+    71.385,
+    51.18,
+    71.485
+   ],
+   "graph": {
+    "nodes": 75986,
+    "edges": 91869,
+    "osm_timestamp": "2026-11-10T06:27:35Z"
+   },
+   "places": [
+    {
+     "id": "baiterek",
+     "name": "Baiterek",
+     "lat": 51.128286,
+     "lon": 71.430456
+    },
+    {
+     "id": "khan-shatyr",
+     "name": "Khan Shatyr",
+     "lat": 51.132505,
+     "lon": 71.403861
+    },
+    {
+     "id": "expo",
+     "name": "EXPO 2017 area",
+     "lat": 51.092097,
+     "lon": 71.414625
+    },
+    {
+     "id": "alem-ai",
+     "name": "Alem.ai",
+     "lat": 51.089233,
+     "lon": 71.416235
+    },
+    {
+     "id": "nazarbayev-university",
+     "name": "Nazarbayev University",
+     "lat": 51.092074,
+     "lon": 71.397648
+    },
+    {
+     "id": "ak-orda",
+     "name": "Ak Orda",
+     "lat": 51.125797,
+     "lon": 71.446351
+    },
+    {
+     "id": "hazret-sultan",
+     "name": "Hazret Sultan Mosque",
+     "lat": 51.12545,
+     "lon": 71.472142
+    },
+    {
+     "id": "palace-of-peace",
+     "name": "Palace of Peace and Reconciliation",
+     "lat": 51.123123,
+     "lon": 71.463456
+    },
+    {
+     "id": "astana-opera",
+     "name": "Astana Opera",
+     "lat": 51.13546,
+     "lon": 71.410659
+    },
+    {
+     "id": "mega-silk-way",
+     "name": "Mega Silk Way",
+     "lat": 51.089086,
+     "lon": 71.407286
+    },
+    {
+     "id": "presidential-park",
+     "name": "Presidential Park",
+     "lat": 51.113513,
+     "lon": 71.444306
+    },
+    {
+     "id": "astana-arena",
+     "name": "Astana Arena",
+     "lat": 51.108392,
+     "lon": 71.402867
+    }
+   ]
+  },
+  {
+   "id": "almaty",
+   "name": "Almaty",
+   "center": [
+    43.2389,
+    76.8897
+   ],
+   "bbox": [
+    43.205,
+    76.88,
+    43.275,
+    76.975
+   ],
+   "graph": {
+    "nodes": 63379,
+    "edges": 76003,
+    "osm_timestamp": "2026-11-10T06:24:34Z"
+   },
+   "places": [
+    {
+     "id": "republic-square",
+     "name": "Republic Square",
+     "lat": 43.238884,
+     "lon": 76.945474
+    },
+    {
+     "id": "zenkov-cathedral",
+     "name": "Ascension Cathedral",
+     "lat": 43.25879,
+     "lon": 76.953113
+    },
+    {
+     "id": "green-bazaar",
+     "name": "Green Bazaar",
+     "lat": 43.263676,
+     "lon": 76.955197
+    },
+    {
+     "id": "arbat",
+     "name": "Arbat (Zhibek Zholy)",
+     "lat": 43.261691,
+     "lon": 76.941645
+    },
+    {
+     "id": "central-park",
+     "name": "Central Park",
+     "lat": 43.261645,
+     "lon": 76.969274
+    },
+    {
+     "id": "abay-opera",
+     "name": "Abai Opera and Ballet Theatre",
+     "lat": 43.248652,
+     "lon": 76.945791
+    },
+    {
+     "id": "dostyk-plaza",
+     "name": "Dostyk Plaza",
+     "lat": 43.233408,
+     "lon": 76.956782
+    },
+    {
+     "id": "kbtu",
+     "name": "Kazakh-British Technical University",
+     "lat": 43.255726,
+     "lon": 76.943133
+    },
+    {
+     "id": "almaty-2",
+     "name": "Almaty-2 station",
+     "lat": 43.274,
+     "lon": 76.939025
+    },
+    {
+     "id": "kaznu",
+     "name": "Al-Farabi Kazakh National University",
+     "lat": 43.220567,
+     "lon": 76.923318
+    },
+    {
+     "id": "esentai-mall",
+     "name": "Esentai Mall",
+     "lat": 43.218594,
+     "lon": 76.928018
+    },
+    {
+     "id": "kok-tobe",
+     "name": "Kok-Tobe cable car (lower station)",
+     "lat": 43.242391,
+     "lon": 76.958981
+    }
+   ]
+  }
+ ],
+ "timezone": "Asia/Almaty",
+ "classes": [
+  {
+   "id": "low",
+   "label": "Low",
+   "min": 0,
+   "max": 5
+  },
+  {
+   "id": "moderate",
+   "label": "Moderate",
+   "min": 5,
+   "max": 15
+  },
+  {
+   "id": "elevated",
+   "label": "Elevated",
+   "min": 15,
+   "max": 25
+  },
+  {
+   "id": "high",
+   "label": "High",
+   "min": 25,
+   "max": null
+  }
+ ],
+ "activities": [
+  {
+   "id": "walk",
+   "label": "Walk",
+   "duration_min": 45,
+   "intensity": 1.0,
+   "benefit": 5,
+   "must": false
+  },
+  {
+   "id": "run",
+   "label": "Run",
+   "duration_min": 40,
+   "intensity": 2.5,
+   "benefit": 8,
+   "must": false
+  },
+  {
+   "id": "kids",
+   "label": "Outside with a child",
+   "duration_min": 60,
+   "intensity": 1.0,
+   "benefit": 6,
+   "must": false
+  },
+  {
+   "id": "errand",
+   "label": "Errand on foot",
+   "duration_min": 30,
+   "intensity": 1.0,
+   "benefit": 6,
+   "must": true
+  }
+ ],
+ "defaults": {
+  "reliability": 0.8,
+  "wait_cost": 0.3,
+  "deadline_hours": 8,
+  "harm": [
+   0,
+   1,
+   4,
+   10
+  ]
+ },
+ "limits": {
+  "reliability": [
+   0.55,
+   0.95
+  ],
+  "wait_cost": [
+   0.1,
+   1.0
+  ],
+  "deadline_hours": [
+   1,
+   12
+  ],
+  "duration_min": [
+   10,
+   180
+  ]
+ },
+ "kinds": [
+  {
+   "id": "major",
+   "label": "Major road",
+   "index": 2.0
+  },
+  {
+   "id": "secondary",
+   "label": "Secondary road",
+   "index": 1.6
+  },
+  {
+   "id": "tertiary",
+   "label": "Tertiary road",
+   "index": 1.3
+  },
+  {
+   "id": "street",
+   "label": "Residential street",
+   "index": 1.0
+  },
+  {
+   "id": "path",
+   "label": "Footpath",
+   "index": 0.8
+  },
+  {
+   "id": "park",
+   "label": "Path in a park",
+   "index": 0.6
+  },
+  {
+   "id": "roadside_major",
+   "label": "Path beside a major road",
+   "index": 1.8
+  },
+  {
+   "id": "roadside_secondary",
+   "label": "Path beside a secondary road",
+   "index": 1.4
+  }
+ ],
+ "h_factor": 0.6,
+ "assumptions": [
+  "PM2.5 values are model readings from the CAMS global model (~40 km grid) served by Open-Meteo, not sensor measurements; past hours are earlier model runs.",
+  "Class cut-points 5 / 15 / 25 ug/m3 come from WHO 2021 daily and annual guidance and are applied to hourly values; WHO defines no hourly PM2.5 guideline.",
+  "Reading trust r (default 0.8) is a setting, not estimated from data: the probability that the grid value's band is the true class on your street.",
+  "Forecast trust r_f(k) = max(0.5, 0.75 - 0.005 k) for an hour k hours ahead.",
+  "Transitions are learned from model readings: the reading's band stands in for the hidden class.",
+  "Harm per hour [0, 1, 4, 10], activity benefits and the waiting cost are utility points chosen by hand.",
+  "The action now uses the QMDP rule: it assumes the uncertainty about the class disappears after one step.",
+  "The traffic exposure index per street kind and the 25 m roadside rule are a proxy for traffic pollution next to busy roads, not measured values.",
+  "Ventilation 1.2 m3/h walking and 3.0 m3/h running (US EPA Exposure Factors Handbook 2011, ch. 6); walking 80 m/min, running 160 m/min.",
+  "Not medical advice."
+ ]
+}

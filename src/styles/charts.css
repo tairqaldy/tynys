@@ -1,0 +1,303 @@
+/* Hand-built SVG charts: thin, precise, labelled directly. */
+.chart {
+  position: relative;
+  min-width: 0;
+}
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+.chart figcaption,
+.policy__legend-note {
+  margin-top: var(--space-3);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 40em;
+}
+.chart text {
+  font-family: var(--font-sans);
+}
+.chart .num,
+.chart text.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tick {
+  font-size: 10.5px;
+  fill: var(--ink-3);
+}
+.axis-label {
+  font-size: 11px;
+  fill: var(--ink-2);
+}
+.axis-label--unit {
+  fill: var(--ink-3);
+  font-size: 10px;
+}
+.gridline {
+  stroke: var(--rule);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+.gridline--half {
+  stroke: var(--rule-strong);
+  stroke-dasharray: 3 3;
+}
+.dayline {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.track {
+  fill: var(--wash-2);
+}
+.band-bg {
+  opacity: 0.16;
+}
+:root[data-theme='dark'] .band-bg {
+  opacity: 0.1;
+}
+.stack-seg {
+  stroke: var(--paper);
+  stroke-width: 0.6;
+}
+
+/* belief bars */
+.belief .chip-letter,
+.cell-letter {
+  font-size: 11px;
+  font-weight: 600;
+}
+.belief__label {
+  font-size: 14px;
+  fill: var(--ink-2);
+}
+.belief .is-top .belief__label {
+  fill: var(--ink);
+  font-weight: 600;
+}
+.belief__range {
+  font-size: 10.5px;
+  fill: var(--ink-3);
+}
+.belief__pct {
+  font-size: 14px;
+  fill: var(--ink-2);
+}
+.belief .is-top .belief__pct {
+  fill: var(--ink);
+  font-weight: 600;
+}
+
+/* 24 h strip */
+.pm-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.pm-dot {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+.value-label {
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  font-size: 11.5px;
+  fill: var(--ink);
+  font-weight: 600;
+}
+.seg-letter {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* probability of going */
+.pgo-bar {
+  fill: var(--ink-3);
+  opacity: 0.55;
+}
+.pgo-bar.is-best {
+  fill: var(--accent);
+  opacity: 1;
+}
+.pgo-bar--skip {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  opacity: 1;
+}
+.cum-line {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
+}
+.bar-label {
+  font-size: 10.5px;
+  fill: var(--ink-2);
+}
+.bar-label.is-best,
+.tick.is-best {
+  fill: var(--accent);
+  font-weight: 700;
+}
+.median-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--accent);
+  font-weight: 600;
+}
+
+/* class chip */
+.class-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.class-chip__sq {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--cf);
+  color: var(--co);
+  font: 600 11px/1 var(--font-sans);
+}
+
+/* policy grid (a table) */
+.policy {
+  margin-top: var(--space-2);
+}
+.policy__scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.policy__table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: var(--fs-xs);
+}
+.policy__table th {
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.policy__table thead th {
+  padding: 0 0 4px;
+  text-align: center;
+  min-width: 28px;
+}
+.policy__table thead th.is-best {
+  color: var(--accent);
+  font-weight: 700;
+}
+.policy__rowlabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+.policy__sq {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--cf);
+  color: var(--co);
+  font-weight: 600;
+}
+.policy__name {
+  color: var(--ink-2);
+}
+.cell {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--cf) 22%, transparent);
+  color: var(--ink);
+}
+.cell .glyph {
+  display: block;
+  margin: auto;
+}
+.cell.is-now {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.glyph--go circle {
+  fill: currentColor;
+}
+.glyph--wait circle,
+.glyph--wait path,
+.glyph--skip path {
+  stroke: currentColor;
+}
+.cell--skip {
+  color: var(--ink-2);
+}
+.policy__foot {
+  text-align: right;
+  padding-right: 8px;
+  font-size: var(--fs-xs);
+}
+.policy__fc {
+  height: 18px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 10px;
+  color: var(--ci);
+  border-top: 3px solid var(--cf);
+}
+.policy__legend {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.policy__legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.policy__legend .glyph {
+  color: var(--ink);
+}
+.policy__legend-note {
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+.legend-now {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+}
+@media (max-width: 480px) {
+  .policy__name {
+    display: none;
+  }
+  .cell {
+    width: 22px;
+    height: 26px;
+  }
+  .policy__table thead th {
+    min-width: 22px;
+    font-size: 10px;
+  }
+  .policy__table {
+    border-spacing: 1.5px;
+  }
+}

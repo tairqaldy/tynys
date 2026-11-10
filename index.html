@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tynys — air in Astana and Almaty</title>
+    <meta name="description" content="How is the air now, when should you go out, and which way should you walk — an air-quality planner for Astana and Almaty." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f5f8f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1316" media="(prefers-color-scheme: dark)" />
+    <script>
+      // Set the theme before first paint so there is no flash.
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem('tynys.theme'); } catch (e) {}
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Tynys needs JavaScript to load the air model and the map.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

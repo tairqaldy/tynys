@@ -1,0 +1,176 @@
+/* Design tokens.
+   The class scale (low → high) runs from clear sky blue through sand and amber to a deep crimson.
+   Hue separates blue from the warm side for red-green colour vision deficiency, lightness separates
+   the warm classes from each other, and every use is paired with a letter (L M E H), a label or an
+   SVG pattern. The page "air" (data-air on <html>) tints the paper, sets the accent and the map haze. */
+
+:root {
+  --font-serif: 'Literata Variable', 'Literata', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Golos Text Variable', 'Golos Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-q: clamp(1.15rem, 1rem + 0.5vw, 1.35rem);
+  --fs-answer: clamp(1.65rem, 1.15rem + 1.7vw, 2.35rem);
+  --fs-hero: clamp(2.05rem, 1.25rem + 2.7vw, 3.15rem);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+  --space-9: 112px;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+  --header-h: 60px;
+  --column-w: 620px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --atmo-dur: 1.4s;
+
+  color-scheme: light;
+
+  /* light theme ------------------------------------------------------ */
+  --ink: #172026;
+  --ink-2: #44515a;
+  --ink-3: #5e6b73;
+  --rule: rgb(23 32 38 / 0.13);
+  --rule-strong: rgb(23 32 38 / 0.28);
+  --wash: rgb(23 32 38 / 0.035);
+  --wash-2: rgb(23 32 38 / 0.07);
+  --raised: #ffffff;
+  --on-accent: #ffffff;
+
+  --c-low: #a6d2e2;
+  --c-moderate: #e3be55;
+  --c-elevated: #d9742f;
+  --c-high: #9a2b4e;
+  --c-low-ink: #1d6681;
+  --c-moderate-ink: #6b5a12;
+  --c-elevated-ink: #974512;
+  --c-high-ink: #8a2645;
+  /* text drawn on top of a class fill */
+  --c-low-on: #172026;
+  --c-moderate-on: #172026;
+  --c-elevated-on: #172026;
+  --c-high-on: #ffffff;
+  --pattern-ink: rgb(23 32 38 / 0.42);
+
+  /* road kinds: a neutral ramp, darker = higher traffic exposure index */
+  --k-0: #c9d0d3;
+  --k-1: #a3adb2;
+  --k-2: #7d898f;
+  --k-3: #57646b;
+  --k-4: #323d43;
+
+  --route-short: #56636b;
+
+  --paper-none: #f6f7f7;
+  --paper-low: #f5f8f9;
+  --paper-moderate: #f7f6ef;
+  --paper-elevated: #f8f1e8;
+  --paper-high: #f4eae4;
+  --haze-color: #c9a27c;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ink: #e4eaec;
+  --ink-2: #a9b5ba;
+  --ink-3: #8c989e;
+  --rule: rgb(228 234 236 / 0.13);
+  --rule-strong: rgb(228 234 236 / 0.3);
+  --wash: rgb(228 234 236 / 0.04);
+  --wash-2: rgb(228 234 236 / 0.08);
+  --raised: #1a2024;
+  --on-accent: #0e1316;
+
+  --c-low: #86c0d6;
+  --c-moderate: #d6b654;
+  --c-elevated: #dd7c3f;
+  --c-high: #cf5e88;
+  --c-low-ink: #7fc3dc;
+  --c-moderate-ink: #ddc26b;
+  --c-elevated-ink: #f09c61;
+  --c-high-ink: #f08ca8;
+  --c-low-on: #0e1316;
+  --c-moderate-on: #0e1316;
+  --c-elevated-on: #0e1316;
+  --c-high-on: #0e1316;
+  --pattern-ink: rgb(14 19 22 / 0.5);
+
+  --k-0: #3a464c;
+  --k-1: #56646b;
+  --k-2: #7a888f;
+  --k-3: #a1adb3;
+  --k-4: #cdd5d8;
+
+  --route-short: #a9b5ba;
+
+  --paper-none: #101416;
+  --paper-low: #0e1316;
+  --paper-moderate: #121310;
+  --paper-elevated: #15110e;
+  --paper-high: #170f10;
+  --haze-color: #7a5a40;
+}
+
+/* the air of the page ---------------------------------------------------- */
+:root {
+  --paper: var(--paper-none);
+  --accent: var(--ink-2);
+  --air-fill: var(--rule-strong);
+  --haze-opacity: 0;
+}
+:root[data-air='low'] {
+  --paper: var(--paper-low);
+  --accent: var(--c-low-ink);
+  --air-fill: var(--c-low);
+  --haze-opacity: 0;
+}
+:root[data-air='moderate'] {
+  --paper: var(--paper-moderate);
+  --accent: var(--c-moderate-ink);
+  --air-fill: var(--c-moderate);
+  --haze-opacity: 0.1;
+}
+:root[data-air='elevated'] {
+  --paper: var(--paper-elevated);
+  --accent: var(--c-elevated-ink);
+  --air-fill: var(--c-elevated);
+  --haze-opacity: 0.2;
+}
+:root[data-air='high'] {
+  --paper: var(--paper-high);
+  --accent: var(--c-high-ink);
+  --air-fill: var(--c-high);
+  --haze-opacity: 0.32;
+}
+
+/* per-element class context: [data-c] sets --c-fill / --c-ink / --c-on for its children */
+[data-c='low'] {
+  --cf: var(--c-low);
+  --ci: var(--c-low-ink);
+  --co: var(--c-low-on);
+}
+[data-c='moderate'] {
+  --cf: var(--c-moderate);
+  --ci: var(--c-moderate-ink);
+  --co: var(--c-moderate-on);
+}
+[data-c='elevated'] {
+  --cf: var(--c-elevated);
+  --ci: var(--c-elevated-ink);
+  --co: var(--c-elevated-on);
+}
+[data-c='high'] {
+  --cf: var(--c-high);
+  --ci: var(--c-high-ink);
+  --co: var(--c-high-on);
+}

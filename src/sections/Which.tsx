@@ -1,0 +1,161 @@
+import type { ReactNode } from 'react';
+import type { CityMeta, KindMeta, RouteResponse } from '../api/types';
+import { Assumption, ErrorState, QuestionHead, Skeleton } from '../components/common';
+import { PlaceField, type RoutePoint } from '../components/PlaceField';
+import { RouteCard } from '../components/RouteFacts';
+import { routeSentence } from '../lib/copy';
+import { km, num } from '../lib/format';
+import type { RequestState } from '../lib/hooks';
+
+interface Props {
+  city: CityMeta;
+  kinds: KindMeta[];
+  from: RoutePoint | null;
+  to: RoutePoint | null;
+  setPoint: (which: 'from' | 'to', p: RoutePoint | null) => void;
+  swap: () => void;
+  pickTarget: 'from' | 'to';
+  setPickTarget: (w: 'from' | 'to') => void;
+  req: RequestState<RouteResponse>;
+  route: RouteResponse | null;
+  atText: string;
+  verb: 'walking' | 'running';
+  onReplay: () => void;
+  replaying: boolean;
+  pointMsg: string | null;
+  mapSlot: ReactNode;
+  mapFailed: string | null;
+}
+
+export function Which(p: Props) {
+  const { city, route, req } = p;
+  const updating = req.loading && route !== null;
+  const usePreset = (pl: { lat: number; lon: number; name: string }) => {
+    const target = !p.from ? 'from' : !p.to ? 'to' : p.pickTarget;
+    p.setPoint(target, { lat: pl.lat, lon: pl.lon, label: pl.name });
+  };
+
+  return (
+    <section className="q" aria-labelledby="q-which" id="which">
+      <QuestionHead n={3} id="q-which" kicker="A* search · exposure-weighted street graph" title="Which way should I walk?" />
+
+      <div className="route-form">
+        <PlaceField
+          label="From"
+          marker="A"
+          city={city.id}
+          value={p.from}
+          onSelect={(v) => p.setPoint('from', v)}
+          onFocus={() => p.setPickTarget('from')}
+          picking={p.pickTarget === 'from'}
+        />
+        <button type="button" className="swap" onClick={p.swap} aria-label="Swap start and destination" disabled={!p.from && !p.to}>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path d="M6 3 V15 M6 15 L3 12 M6 15 L9 12 M12 15 V3 M12 3 L9 6 M12 3 L15 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <PlaceField
+          label="To"
+          marker="B"
+          city={city.id}
+          value={p.to}
+          onSelect={(v) => p.setPoint('to', v)}
+          onFocus={() => p.setPickTarget('to')}
+          picking={p.pickTarget === 'to'}
+        />
+      </div>
+
+      <div className="pick-row">
+        <span className="pick-row__label" id="pick-label">
+          A map click sets
+        </span>
+        <div className="pick-toggle" role="group" aria-labelledby="pick-label">
+          {(['from', 'to'] as const).map((w) => (
+            <button key={w} type="button" aria-pressed={p.pickTarget === w} onClick={() => p.setPickTarget(w)}>
+              {w === 'from' ? 'A · From' : 'B · To'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {city.places.length > 0 && (
+        <div className="presets">
+          <span className="presets__label">Places in {city.name}</span>
+          <ul>
+            {city.places.map((pl) => (
+              <li key={pl.id}>
+                <button type="button" className="preset" onClick={() => usePreset(pl)}>
+                  {pl.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {p.pointMsg && (
+        <p className="inline-error" role="alert">
+          {p.pointMsg}
+        </p>
+      )}
+
+      {p.mapSlot}
+      {p.mapFailed && <p className="inline-error">{p.mapFailed}</p>}
+
+      {(!p.from || !p.to) && !route && (
+        <p className="empty-note">
+          Pick a start and a destination inside the dashed outline on the map ({city.name} centre, street graph of{' '}
+          <span className="num">{city.graph.nodes.toLocaleString('en-US')}</span> nodes). Tynys finds the shortest walk
+          and the one with the least traffic exposure.
+        </p>
+      )}
+
+      {p.from && p.to && !route && req.loading && <Skeleton lines={3} />}
+      {p.from && p.to && req.error && !req.loading && (
+        <ErrorState title="No route this time." message={req.error.message} onRetry={req.error.status >= 500 || req.error.status === 0 ? req.retry : undefined} />
+      )}
+
+      {route && p.from && p.to && (
+        <div className={`q-body${updating ? ' is-updating' : ''}`} aria-busy={updating}>
+          <p className="answer" aria-live="polite">
+            {routeSentence(route, p.verb)}
+          </p>
+          <p className="answer-sub">
+            Scored for {p.atText}, when the model expects about <span className="num">{num(route.pm25_at, 1)}</span> µg/m³
+            PM2.5 in the city.
+            {route.comparison.same_route
+              ? ' One line on the map.'
+              : ' On the map: the solid line has the least traffic exposure, the dotted one is shortest.'}
+          </p>
+
+          <div className={`route-cards${route.comparison.same_route ? ' is-single' : ''}`}>
+            <RouteCard kind="cleanest" r={route.cleanest} kinds={p.kinds} highlight />
+            {!route.comparison.same_route && <RouteCard kind="shortest" r={route.shortest} kinds={p.kinds} highlight={false} />}
+          </div>
+          <p className="fineprint">
+            <sup>*</sup> Exposure score = expected PM2.5 × mean exposure index × breathing rate (
+            <span className="num">{num(route.ventilation_m3h, 1)}</span> m³/h) × hours. It has units of µg but is only for
+            comparing the two routes — not a measured dose.
+          </p>
+          <div className="replay">
+            <button type="button" className="btn" onClick={p.onReplay} disabled={p.replaying}>
+              {p.replaying ? 'Replaying…' : 'Replay search'}
+            </button>
+            <span className="replay__note">
+              Shows, in order, the <span className="num">{route.cleanest.expanded.toLocaleString('en-US')}</span> nodes A*
+              expanded for the cleanest route (a sample of up to 1,500).
+            </span>
+          </div>
+          <p className="fineprint">
+            Snapped to the street graph: start {km(route.from.snap_m)}, destination {km(route.to.snap_m)} away from the
+            points you picked.{' '}
+            <Assumption>
+              The exposure index per street kind (major road ×2.0 … park path ×0.6, paths within 25 m of a busy road count
+              as roadside) is a proxy for traffic pollution next to the road, not measured.
+            </Assumption>
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
