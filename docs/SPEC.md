@@ -215,7 +215,7 @@ Backend owns `tynys/ api/ scripts/ data/ tests/ fixtures/` and `docs/demo_output
 Frontend owns `src/ public/ index.html package.json vite.config.ts tsconfig*.json`. Nobody commits; the lead commits.
 
 Python: 3.12, **standard library only** at runtime (`urllib`, `json`, `math`, `heapq`, `http.server`).
-Use `/Users/tairkaldybayev/codespace/qairu/.venv/bin/python` locally. No `requirements.txt` needed.
+Any Python 3.12 interpreter works locally. No `requirements.txt` needed.
 
 ## 6. HTTP API (all `GET`, JSON, UTF-8)
 
