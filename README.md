@@ -16,6 +16,10 @@ Final project for **AIF1303 AI Fundamentals**, QAIRU, trimester 1, 2026–27 —
 
 ![Tynys: the Now, When and Which way sections beside the map](docs/screenshots/overview.png)
 
+| When should I go out? | Which way should I walk? | Show the math |
+|---|---|---|
+| ![The decision, the go-probability chart and the policy grid](docs/screenshots/when.png) | ![Two routes compared, with the share of each street kind](docs/screenshots/route.png) | ![Transition matrices as learned from 92 days of data](docs/screenshots/math.png) |
+
 ## How the three parts work together
 
 ```mermaid
