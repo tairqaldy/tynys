@@ -36,6 +36,9 @@ interface Props {
   onPick: (p: LatLon) => void;
   onDrag: (which: 'from' | 'to', p: LatLon) => void;
   replay: number;
+  /** increment to remove the replayed search from the map */
+  clear: number;
+  onReplayProgress: (shown: number) => void;
   reducedMotion: boolean;
   cooperative: boolean;
   onReplayDone: () => void;
@@ -87,6 +90,9 @@ const quiet: TransformStyleFunction = (_prev, next) => ({
 });
 
 const HIDE_ALL: FilterSpecification = ['<', ['get', 'i'], -1];
+/** how many of the most recently expanded nodes are drawn darker, so the search frontier shows */
+const FRONTIER = 250;
+const frontierOpacity = (n: number) => ['case', ['>=', ['get', 'i'], n - FRONTIER], 0.95, 0.45] as unknown as number;
 
 export function MapView(p: Props) {
   const mapRef = useRef<MlMap | null>(null);
@@ -96,6 +102,8 @@ export function MapView(p: Props) {
   const cb = useRef(p);
   cb.current = p;
   const anim = useRef<number | null>(null);
+  const shownRef = useRef(0);
+  const cityFits = useRef(0);
 
   // ------------------------------------------------------------ create once
   useEffect(() => {
@@ -168,7 +176,12 @@ export function MapView(p: Props) {
         type: 'circle',
         source: 't-explored',
         filter: exploredFilter.current,
-        paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1.4, 16, 3.5], 'circle-color': cssVar('--accent'), 'circle-opacity': 0.45 },
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2.4, 14, 3, 17, 4],
+          'circle-color': cssVar('--accent'),
+          'circle-opacity': frontierOpacity(shownRef.current),
+          'circle-stroke-width': 0,
+        },
       });
     if (!has('t-short'))
       map.addLayer({
@@ -238,8 +251,10 @@ export function MapView(p: Props) {
     setData('mask', { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [WORLD, bboxRing(p.bbox).slice().reverse()] } }] });
     setData('coverage', { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: bboxRing(p.bbox) } }] });
     const [s, w, n, e] = p.bbox;
-    // the first fit (and a jump between cities) is instant; the cities are 1,000 km apart
-    m?.fitBounds([[w, s], [e, n]], { padding: 24, duration: 0 });
+    // the first view is instant; switching city flies there (instant under reduced motion)
+    const first = cityFits.current === 0;
+    if (m) cityFits.current += 1;
+    m?.fitBounds([[w, s], [e, n]], { padding: 24, duration: first || cb.current.reducedMotion ? 0 : 1600 });
   }, [p.bbox?.join(',')]);
 
   useEffect(() => {
@@ -254,6 +269,8 @@ export function MapView(p: Props) {
     const r = p.route;
     if (anim.current) cancelAnimationFrame(anim.current);
     exploredFilter.current = HIDE_ALL;
+    shownRef.current = 0;
+    anim.current = null;
     mapRef.current?.getLayer('t-explored') && mapRef.current.setFilter('t-explored', HIDE_ALL);
     if (!r) {
       setData('short', EMPTY);
@@ -267,10 +284,40 @@ export function MapView(p: Props) {
       type: 'FeatureCollection',
       features: r.cleanest.explored.map(([la, lo], i) => ({ type: 'Feature', properties: { i }, geometry: { type: 'Point', coordinates: [lo, la] } })),
     });
+    fitRoute();
+  }, [p.route]);
+
+  /** Fit both routes and both picked points, leaving room for the legend, the controls and the attribution. */
+  function fitRoute() {
+    const m = mapRef.current;
+    const r = cb.current.route;
+    if (!m || !r) return;
     const b = new LngLatBounds();
     [...r.cleanest.coords, ...r.shortest.coords].forEach(([la, lo]) => b.extend([lo, la]));
-    if (!b.isEmpty()) mapRef.current?.fitBounds(b, { padding: { top: 84, bottom: 44, left: 44, right: 60 }, maxZoom: 16, duration: cb.current.reducedMotion ? 0 : 800 });
-  }, [p.route]);
+    for (const pt of [cb.current.from, cb.current.to]) if (pt) b.extend([pt.lon, pt.lat]);
+    if (b.isEmpty()) return;
+    const box = p.container;
+    const W = box.clientWidth;
+    const H = box.clientHeight;
+    if (W < 120 || H < 120) return;
+    const legend = box.closest('.map-frame')?.querySelector<HTMLElement>('.map-legend');
+    const small = W < 480;
+    const marker = 18; // half a marker plus a little air
+    const pad = {
+      top: (legend ? legend.offsetTop + legend.offsetHeight : 0) + marker,
+      bottom: 38 + marker,
+      left: (small ? 12 : 28) + marker,
+      right: (small ? 44 : 56) + marker,
+    };
+    // never ask for more padding than the map has room for
+    const sx = Math.min(1, (W * 0.6) / (pad.left + pad.right));
+    const sy = Math.min(1, (H * 0.6) / (pad.top + pad.bottom));
+    m.fitBounds(b, {
+      padding: { top: pad.top * sy, bottom: pad.bottom * sy, left: pad.left * sx, right: pad.right * sx },
+      maxZoom: 16.5,
+      duration: cb.current.reducedMotion ? 0 : 900,
+    });
+  }
 
   // ------------------------------------------------------------ replay the search
   useEffect(() => {
@@ -279,15 +326,19 @@ export function MapView(p: Props) {
     if (!p.replay || !m || !r || !m.getLayer('t-explored')) return;
     const N = r.cleanest.explored.length;
     const setN = (n: number) => {
+      shownRef.current = n;
       exploredFilter.current = ['<', ['get', 'i'], n];
       m.setFilter('t-explored', exploredFilter.current);
+      m.setPaintProperty('t-explored', 'circle-opacity', frontierOpacity(n));
+      cb.current.onReplayProgress(n);
     };
     if (cb.current.reducedMotion) {
       setN(N);
       cb.current.onReplayDone();
       return;
     }
-    const dur = 2800;
+    // about 2 ms per point, between 2.5 and 4.5 s
+    const dur = Math.max(2500, Math.min(4500, N * 2.2));
     const t0 = performance.now();
     const tick = (t: number) => {
       const k = Math.min(1, (t - t0) / dur);
@@ -304,6 +355,16 @@ export function MapView(p: Props) {
       if (anim.current) cancelAnimationFrame(anim.current);
     };
   }, [p.replay]);
+
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!p.clear || !m) return;
+    if (anim.current) cancelAnimationFrame(anim.current);
+    anim.current = null;
+    shownRef.current = 0;
+    exploredFilter.current = HIDE_ALL;
+    if (m.getLayer('t-explored')) m.setFilter('t-explored', HIDE_ALL);
+  }, [p.clear]);
 
   // ------------------------------------------------------------ markers
   useEffect(() => {

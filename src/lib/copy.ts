@@ -51,7 +51,7 @@ export function decisionSentence(plan: PlanResponse): Decision {
   const H = plan.inputs.deadline_hours;
   const last = plan.hours[plan.hours.length - 1];
   if (d.action === 'go') {
-    return { head: 'Go now.', sub: `Going now scores higher than waiting for cleaner air within the next ${H} h.` };
+    return { head: 'Go now.', sub: `Going now scores higher than waiting for the air to improve within the next ${H} h.` };
   }
   if (d.action === 'skip') {
     return {
@@ -92,7 +92,7 @@ export function planReason(plan: PlanResponse): string {
     return (
       `Weighted by how likely each class is right now, waiting is worth ${f(d.q_wait)} points, ` +
       `going now ${f(d.q_go)}${skipPart}. Waiting comes out ${f(d.q_wait - d.q_go)} ahead: ` +
-      `the cleaner air the model expects later is worth more than the ${f(i.wait_cost)} points each hour of waiting costs.${mustNote}`
+      `the improvement the model expects later is worth more than the ${f(i.wait_cost)} points each hour of waiting costs.${mustNote}`
     );
   }
   return (

@@ -10,6 +10,7 @@ import { CLASS_IDS, CLASS_LABEL } from './lib/classes';
 import { dayMonth, hhmm, relTime } from './lib/format';
 import { useDebounced, useMediaQuery, useReducedMotion, useRequest } from './lib/hooks';
 import { load, save } from './lib/storage';
+import { parseUrlState, writeUrlState, type UrlPoint } from './lib/urlState';
 import { About } from './sections/About';
 import { MathSection } from './sections/MathSection';
 import { Now } from './sections/Now';
@@ -30,9 +31,19 @@ const FALLBACK_CITIES: { id: CityId; name: string }[] = [
 
 type Theme = 'light' | 'dark';
 
+/** The example route drawn on first load, so the map is never empty: [from id, to id] per city. */
+const STARTER: Record<CityId, [string, string]> = {
+  astana: ['khan-shatyr', 'ak-orda'],
+  almaty: ['republic-square', 'green-bazaar'],
+};
+
+const mapPointLabel = (lat: number, lon: number) => `Map point ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+const fromUrl = (p?: UrlPoint): RoutePoint | null => (p ? { lat: p.lat, lon: p.lon, label: p.name ?? mapPointLabel(p.lat, p.lon) } : null);
+
 export default function App() {
-  // ---------------------------------------------------------------- persistent choices
-  const [city, setCityState] = useState<CityId>(() => (load('tynys.city') === 'almaty' ? 'almaty' : 'astana'));
+  // ---------------------------------------------------------------- persistent choices (URL first, then storage)
+  const [urlInit] = useState(() => parseUrlState(window.location.search));
+  const [city, setCityState] = useState<CityId>(() => urlInit.city ?? (load('tynys.city') === 'almaty' ? 'almaty' : 'astana'));
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
   const [themePref, setThemePref] = useState<Theme | null>(() => {
     const t = load('tynys.theme');
@@ -60,7 +71,7 @@ export default function App() {
   const activities = meta?.activities ?? FALLBACK_ACTIVITIES;
 
   // ---------------------------------------------------------------- air
-  const [reliability, setReliability] = useState(0.8);
+  const [reliability, setReliability] = useState(urlInit.reliability ?? 0.8);
   const relDeb = useDebounced(reliability, 350);
   const airReq = useRequest(`${city}|${relDeb}`, (s) => api.air(city, relDeb, s));
   const air = airReq.data && airReq.data.city === city ? airReq.data : null;
@@ -77,12 +88,15 @@ export default function App() {
   }, [air, cityName]);
 
   // ---------------------------------------------------------------- plan
-  const [controls, setControlsState] = useState<PlanControls>({
-    activity: 'walk',
-    duration: 45,
-    deadline: 8,
-    waitCost: 0.3,
-    sensitive: false,
+  const [controls, setControlsState] = useState<PlanControls>(() => {
+    const activity = urlInit.activity ?? 'walk';
+    return {
+      activity,
+      duration: urlInit.duration ?? FALLBACK_ACTIVITIES.find((a) => a.id === activity)!.duration_min,
+      deadline: urlInit.deadline ?? 8,
+      waitCost: urlInit.wait ?? 0.3,
+      sensitive: urlInit.sensitive ?? false,
+    };
   });
   const setControls = useCallback((patch: Partial<PlanControls>) => setControlsState((c) => ({ ...c, ...patch })), []);
   const planParams: PlanParams = {
@@ -99,12 +113,27 @@ export default function App() {
   const plan = planReq.data && planReq.data.city === city ? planReq.data : null;
 
   // ---------------------------------------------------------------- route
-  const [from, setFrom] = useState<RoutePoint | null>(null);
-  const [to, setTo] = useState<RoutePoint | null>(null);
-  const [pickTarget, setPickTarget] = useState<'from' | 'to'>('from');
+  const [from, setFromState] = useState<RoutePoint | null>(() => fromUrl(urlInit.from));
+  const [to, setToState] = useState<RoutePoint | null>(() => fromUrl(urlInit.to));
+  const [example, setExample] = useState(false);
+  const [pickTarget, setPickTarget] = useState<'from' | 'to'>(() => (urlInit.from && !urlInit.to ? 'to' : 'from'));
   const [replay, setReplay] = useState(0);
+  const [clearExplored, setClearExplored] = useState(0);
   const [replaying, setReplaying] = useState(false);
+  const [shown, setShown] = useState<number | null>(null);
   const [mapFailed, setMapFailed] = useState<string | null>(null);
+  // any point the user sets ends the example
+  const setFrom = useCallback((p: RoutePoint | null) => {
+    setFromState(p);
+    setExample(false);
+  }, []);
+  const setTo = useCallback((p: RoutePoint | null) => {
+    setToState(p);
+    setExample(false);
+  }, []);
+
+  // The city whose example route has been considered; points from the URL count as a choice.
+  const seeded = useRef<CityId | null>(urlInit.from || urlInit.to ? city : null);
 
   const setCity = (c: CityId) => {
     if (c === city) return;
@@ -114,6 +143,22 @@ export default function App() {
     setTo(null);
     setPickTarget('from');
   };
+
+  // Example route on first load and after a city switch, when nothing is chosen yet.
+  useEffect(() => {
+    if (!cityMeta || seeded.current === city) return;
+    seeded.current = city;
+    if (from || to) return;
+    const byId = (id: string) => cityMeta.places.find((p) => p.id === id);
+    const [a, b] = STARTER[city];
+    const pa = byId(a) ?? cityMeta.places[0];
+    const pb = byId(b) ?? cityMeta.places[1];
+    if (!pa || !pb) return;
+    setFromState({ lat: pa.lat, lon: pa.lon, label: pa.name });
+    setToState({ lat: pb.lat, lon: pb.lon, label: pb.name });
+    setExample(true);
+    setPickTarget('from');
+  }, [cityMeta, city, from, to]);
 
   const inside = useCallback(
     (p: { lat: number; lon: number }) => {
@@ -140,19 +185,22 @@ export default function App() {
   };
   const onPick = useCallback(
     (ll: LatLon) => {
-      const p: RoutePoint = { lat: ll[0], lon: ll[1], label: `Map point ${ll[0].toFixed(4)}, ${ll[1].toFixed(4)}` };
+      const p: RoutePoint = { lat: ll[0], lon: ll[1], label: mapPointLabel(ll[0], ll[1]) };
       if (pickTarget === 'from') {
         setFrom(p);
         setPickTarget('to');
       } else setTo(p);
     },
-    [pickTarget],
+    [pickTarget, setFrom, setTo],
   );
-  const onDrag = useCallback((which: 'from' | 'to', ll: LatLon) => {
-    const p: RoutePoint = { lat: ll[0], lon: ll[1], label: `Map point ${ll[0].toFixed(4)}, ${ll[1].toFixed(4)}` };
-    if (which === 'from') setFrom(p);
-    else setTo(p);
-  }, []);
+  const onDrag = useCallback(
+    (which: 'from' | 'to', ll: LatLon) => {
+      const p: RoutePoint = { lat: ll[0], lon: ll[1], label: mapPointLabel(ll[0], ll[1]) };
+      if (which === 'from') setFrom(p);
+      else setTo(p);
+    },
+    [setFrom, setTo],
+  );
   const swap = () => {
     setFrom(to);
     setTo(from);
@@ -177,7 +225,33 @@ export default function App() {
   });
   const route = routeKey && routeReq.data && !routeReq.error && routeReq.data.city === city ? routeReq.data : null;
   const atText = at && plan ? `${relTime(at, plan.now)}, the hour the plan suggests` : 'now';
-  useEffect(() => setReplaying(false), [route]);
+  useEffect(() => {
+    setReplaying(false);
+    setShown(null);
+  }, [route]);
+
+  // ---------------------------------------------------------------- shareable URL
+  const urlSearch = writeUrlState(window.location.search, {
+    city,
+    activity: controls.activity,
+    duration: controls.duration,
+    deadline: controls.deadline,
+    wait: controls.waitCost,
+    sensitive: controls.sensitive,
+    reliability,
+    // the example route is not a choice, so it stays out of the link
+    from: !example && from ? { lat: from.lat, lon: from.lon, name: from.label.startsWith('Map point') ? undefined : from.label } : undefined,
+    to: !example && to ? { lat: to.lat, lon: to.lon, name: to.label.startsWith('Map point') ? undefined : to.label } : undefined,
+  });
+  const urlDeb = useDebounced(urlSearch, 400);
+  useEffect(() => {
+    if (urlDeb === window.location.search) return;
+    try {
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${urlDeb}${window.location.hash}`);
+    } catch {
+      /* some browsers rate-limit replaceState; the next change will try again */
+    }
+  }, [urlDeb]);
 
   // ---------------------------------------------------------------- map placement
   const mapEl = useMemo(() => {
@@ -254,6 +328,13 @@ export default function App() {
                 setReplaying(true);
                 setReplay((n) => n + 1);
               }}
+              onClear={() => {
+                setReplaying(false);
+                setShown(null);
+                setClearExplored((n) => n + 1);
+              }}
+              shown={shown}
+              example={example}
               replaying={replaying}
               pointMsg={pointMsg}
               mapFailed={mapFailed}
@@ -299,6 +380,8 @@ export default function App() {
         onPick={onPick}
         onDrag={onDrag}
         replay={replay}
+        clear={clearExplored}
+        onReplayProgress={setShown}
         reducedMotion={reducedMotion}
         cooperative={narrow}
         onReplayDone={() => setReplaying(false)}

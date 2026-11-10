@@ -1,26 +1,42 @@
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import type { PlanResponse } from '../api/types';
 import { CLASS_IDS, CLASS_LABEL, CLASS_LETTER, IDX } from '../lib/classes';
 import { hhmm, num } from '../lib/format';
 import { Matrix } from './Matrix';
 
-function Sum({ terms, digits = 3, vdigits = 2 }: { terms: [number, number][]; digits?: number; vdigits?: number }) {
+interface Row {
+  op: string;
+  expr: ReactNode;
+  note?: ReactNode;
+}
+
+/** A worked sum set as aligned lines: left-hand side, then one term per line under an aligned "=" / "+". */
+function Derivation({ lhs, rows, label }: { lhs: ReactNode; rows: Row[]; label: string }) {
   return (
-    <>
-      (
-      {terms.map(([a, b], k) => (
+    <div className="deriv" role="group" aria-label={label}>
+      {rows.map((r, k) => (
         <Fragment key={k}>
-          {k > 0 && <span className="op-inline"> + </span>}
-          <span className="sum-term">
-            <span className="num">{num(a, digits)}</span>
-            <span className="op-inline">×</span>
-            <span className="num">{num(b, vdigits)}</span>
-          </span>
+          <span className="deriv__lhs">{k === 0 ? lhs : ''}</span>
+          <span className="deriv__op">{r.op}</span>
+          <span className="deriv__expr">{r.expr}</span>
+          <span className="deriv__note">{r.note}</span>
         </Fragment>
       ))}
-      )
-    </>
+    </div>
   );
+}
+
+const product = (a: number, b: number, da = 3, db = 2) => (
+  <>
+    <span className="num">{num(a, da)}</span>
+    <span className="op-inline">×</span>
+    <span className="num">{num(b, db)}</span>
+  </>
+);
+
+/** One product per class: a[s] × b[s], the first under "=" or "+" as given. */
+function termRows(a: readonly number[], b: readonly number[], firstOp: string, noteFor: (s: number) => ReactNode): Row[] {
+  return a.map((x, s) => ({ op: s === 0 ? firstOp : '+', expr: product(x, b[s]), note: noteFor(s) }));
 }
 
 export function MathMdp({ plan }: { plan: PlanResponse }) {
@@ -120,18 +136,31 @@ export function MathMdp({ plan }: { plan: PlanResponse }) {
       </p>
       {bm ? (
         <div className="worked">
-          <p className="worked__line">
-            <span className="f">
-              Q<sub>0</sub>({CLASS_LETTER[bm.state]}, wait)
-            </span>{' '}
-            = −<span className="num">{num(bm.wait_cost, 2)}</span> +{' '}
-            <Sum terms={bm.transition_row.map((t, k) => [t, bm.next_values[k]] as [number, number])} />
-          </p>
-          <p className="worked__line">
-            <span className="worked__eq">=</span> −<span className="num">{num(bm.wait_cost, 2)}</span> +{' '}
-            <span className="num">{num(bm.expected_next, 3)}</span> ={' '}
-            <strong className="num">{num(bm.q_wait, 2)}</strong>
-          </p>
+          <Derivation
+            label={`Bellman backup for waiting in class ${CLASS_LABEL[bm.state]}`}
+            lhs={
+              <span className="f">
+                Q<sub>0</sub>({CLASS_LETTER[bm.state]}, wait)
+              </span>
+            }
+            rows={[
+              { op: '=', expr: <>−<span className="num">{num(bm.wait_cost, 2)}</span></>, note: 'cost of waiting' },
+              ...termRows(bm.transition_row, bm.next_values, '+', (s) => (
+                <span className="f">
+                  T[{CLASS_LETTER[bm.state]}][{CLASS_LETTER[s]}] · V<sub>1</sub>({CLASS_LETTER[s]})
+                </span>
+              )),
+              {
+                op: '=',
+                expr: (
+                  <>
+                    −<span className="num">{num(bm.wait_cost, 2)}</span> + <span className="num">{num(bm.expected_next, 3)}</span>
+                  </>
+                ),
+              },
+              { op: '=', expr: <strong className="num">{num(bm.q_wait, 2)}</strong> },
+            ]}
+          />
           <p className="worked__line">
             <span className="f">
               Q<sub>0</sub>({CLASS_LETTER[bm.state]}, go)
@@ -171,15 +200,31 @@ export function MathMdp({ plan }: { plan: PlanResponse }) {
         .
       </p>
       <div className="worked">
-        <p className="worked__line">
-          <span className="f">Q(b, go)</span> = <Sum terms={b.map((x, k) => [x, h0.q_go[k]] as [number, number])} /> ={' '}
-          <strong className="num">{num(d.q_go, 2)}</strong>
-        </p>
+        <Derivation
+          label="Belief-weighted value of going now"
+          lhs={<span className="f">Q(b, go)</span>}
+          rows={[
+            ...termRows(b, h0.q_go, '=', (s) => (
+              <span className="f">
+                b[{CLASS_LETTER[s]}] · Q<sub>0</sub>({CLASS_LETTER[s]}, go)
+              </span>
+            )),
+            { op: '=', expr: <strong className="num">{num(d.q_go, 2)}</strong> },
+          ]}
+        />
         {qWait0 && (
-          <p className="worked__line">
-            <span className="f">Q(b, wait)</span> = <Sum terms={b.map((x, k) => [x, qWait0[k]] as [number, number])} /> ={' '}
-            <strong className="num">{num(d.q_wait, 2)}</strong>
-          </p>
+          <Derivation
+            label="Belief-weighted value of waiting"
+            lhs={<span className="f">Q(b, wait)</span>}
+            rows={[
+              ...termRows(b, qWait0, '=', (s) => (
+                <span className="f">
+                  b[{CLASS_LETTER[s]}] · Q<sub>0</sub>({CLASS_LETTER[s]}, wait)
+                </span>
+              )),
+              { op: '=', expr: <strong className="num">{num(d.q_wait, 2)}</strong> },
+            ]}
+          />
         )}
         {!i.must && (
           <p className="worked__line">

@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#f5f8f9"/><path d="M6 13c4-3 8 3 12 0s6-2 8-1M6 19c4-3 8 3 12 0s6-2 8-1" fill="none" stroke="#1d6681" stroke-width="2.2" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .bg { fill: #f5f8f9; } .ln { stroke: #1d6681; } .lt { stroke: #a6d2e2; }
+    @media (prefers-color-scheme: dark) { .bg { fill: #0e1316; } .ln { stroke: #7fc3dc; } .lt { stroke: #3a5560; } }
+  </style>
+  <rect class="bg" width="32" height="32" rx="8"/>
+  <path class="lt" d="M6 10.5c3.2-2.4 6.4 2.4 9.6 0s6.4-2.4 10.4 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+  <path class="ln" d="M6 16.5c3.2-2.4 6.4 2.4 9.6 0s6.4-2.4 10.4 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+  <path class="lt" d="M6 22.5c3.2-2.4 6.4 2.4 9.6 0s6.4-2.4 10.4 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

@@ -268,6 +268,10 @@ input[type='range']:focus-visible::-moz-range-thumb {
   background: var(--ink);
   color: var(--paper);
 }
+.btn--quiet {
+  border-color: var(--rule-strong);
+  color: var(--ink-2);
+}
 .btn:disabled {
   opacity: 0.55;
 }

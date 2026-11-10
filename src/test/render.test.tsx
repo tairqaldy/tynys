@@ -82,6 +82,9 @@ describe.each([640, 343])('sections at %ipx', (w) => {
           atText="now"
           verb="walking"
           onReplay={() => {}}
+          onClear={() => {}}
+          shown={Math.floor(route.cleanest.explored.length / 2)}
+          example
           replaying={false}
           pointMsg={null}
           mapSlot={null}

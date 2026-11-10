@@ -61,7 +61,7 @@ export function RouteCard({
   highlight: boolean;
 }) {
   return (
-    <article className={`route-card route-card--${kind}${highlight ? ' is-highlight' : ''}`} aria-label={`${kind} route`}>
+    <article className={`route-card route-card--${kind}${highlight ? ' is-highlight' : ''}`} aria-label={kind === 'cleanest' ? 'Route with the least traffic exposure' : 'Shortest route'}>
       <h4 className="route-card__title">
         <span className={`route-swatch route-swatch--${kind}`} aria-hidden="true" />
         {kind === 'cleanest' ? 'Least traffic exposure' : 'Shortest'}

@@ -61,9 +61,9 @@ export function PredictedBelief({ predicted }: { predicted: PredictedHour[] }) {
                     </text>
                   </g>
                 )}
-                {hourOf(h.time) % 6 === 0 && (
+                {hourOf(h.time) % (narrow ? 12 : 6) === 0 && (
                   <text x={x + cw / 2} y={axisY} textAnchor="middle" className="tick num">
-                    {narrow ? hhmm(h.time).slice(0, 2) : hhmm(h.time)}
+                    {hhmm(h.time)}
                   </text>
                 )}
               </g>

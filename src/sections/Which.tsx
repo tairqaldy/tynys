@@ -21,6 +21,10 @@ interface Props {
   atText: string;
   verb: 'walking' | 'running';
   onReplay: () => void;
+  onClear: () => void;
+  /** sample points of the search currently drawn on the map, null when none */
+  shown: number | null;
+  example: boolean;
   replaying: boolean;
   pointMsg: string | null;
   mapSlot: ReactNode;
@@ -77,6 +81,13 @@ export function Which(p: Props) {
           ))}
         </div>
       </div>
+
+      {p.example && (
+        <p className="example-note">
+          <span className="example-note__tag">Example route</span> pick your own: search, click the map or choose a place
+          below.
+        </p>
+      )}
 
       {city.places.length > 0 && (
         <div className="presets">
@@ -137,15 +148,7 @@ export function Which(p: Props) {
             <span className="num">{num(route.ventilation_m3h, 1)}</span> m³/h) × hours. It has units of µg but is only for
             comparing the two routes — not a measured dose.
           </p>
-          <div className="replay">
-            <button type="button" className="btn" onClick={p.onReplay} disabled={p.replaying}>
-              {p.replaying ? 'Replaying…' : 'Replay search'}
-            </button>
-            <span className="replay__note">
-              Shows, in order, the <span className="num">{route.cleanest.expanded.toLocaleString('en-US')}</span> nodes A*
-              expanded for the cleanest route (a sample of up to 1,500).
-            </span>
-          </div>
+          <ReplayControls route={route} shown={p.shown} replaying={p.replaying} onReplay={p.onReplay} onClear={p.onClear} />
           <p className="fineprint">
             Snapped to the street graph: start {km(route.from.snap_m)}, destination {km(route.to.snap_m)} away from the
             points you picked.{' '}
@@ -157,5 +160,63 @@ export function Which(p: Props) {
         </div>
       )}
     </section>
+  );
+}
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+
+function ReplayControls({
+  route,
+  shown,
+  replaying,
+  onReplay,
+  onClear,
+}: {
+  route: RouteResponse;
+  shown: number | null;
+  replaying: boolean;
+  onReplay: () => void;
+  onClear: () => void;
+}) {
+  const c = route.cleanest;
+  const N = c.explored.length;
+  const sampled = N > 0 && N < c.expanded;
+  const saved = c.expanded_dijkstra > 0 ? 1 - c.expanded / c.expanded_dijkstra : 0;
+  let counter: string | null = null;
+  if (shown !== null && N > 0) {
+    const done = shown >= N;
+    const nodes = done ? c.expanded : sampled ? Math.round((shown / N) * c.expanded) : shown;
+    counter = `${done || !sampled ? '' : 'about '}${fmt(nodes)} of ${fmt(c.expanded)} expanded nodes shown`;
+  }
+  return (
+    <div className="replay">
+      <div className="replay__row">
+        <button type="button" className="btn" onClick={onReplay} disabled={replaying || N === 0}>
+          {replaying ? 'Replaying…' : shown !== null ? 'Replay again' : 'Replay search'}
+        </button>
+        {shown !== null && !replaying && (
+          <button type="button" className="btn btn--quiet" onClick={onClear}>
+            Clear
+          </button>
+        )}
+        {counter && (
+          <span className="replay__counter num" aria-live={replaying ? 'off' : 'polite'}>
+            {counter}
+          </span>
+        )}
+      </div>
+      <p className="replay__note">
+        A* expanded <span className="num">{fmt(c.expanded)}</span> nodes to find the lower-exposure route; Dijkstra, the
+        same search without the heuristic, needed <span className="num">{fmt(c.expanded_dijkstra)}</span> for the same
+        answer{saved > 0 ? <> — A* saved <span className="num">{Math.round(saved * 100)}%</span></> : null}.
+        {sampled && (
+          <>
+            {' '}
+            The map draws <span className="num">{fmt(N)}</span> of them, sampled evenly in the order they were expanded; the
+            darker dots are the most recent ones, the search frontier.
+          </>
+        )}
+      </p>
+    </div>
   );
 }

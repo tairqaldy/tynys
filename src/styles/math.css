@@ -111,12 +111,14 @@
 .mx-grid {
   margin-top: var(--space-4);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: var(--space-5) var(--space-5);
 }
 .mx {
   margin-top: var(--space-4);
   min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 .mx-grid .mx {
   margin-top: 0;
@@ -364,4 +366,55 @@
   font-size: 10px;
   font-weight: 600;
   vertical-align: -2px;
+}
+
+/* aligned derivations: lhs | = or + | term | what the term is */
+.deriv {
+  display: grid;
+  grid-template-columns: auto 1.4em auto 1fr;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 1px;
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+.deriv + .deriv {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+.deriv__lhs {
+  white-space: nowrap;
+}
+.deriv__op {
+  text-align: center;
+  color: var(--ink-3);
+}
+.deriv__expr {
+  white-space: nowrap;
+  text-align: right;
+}
+.deriv__note {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  padding-left: var(--space-3);
+  min-width: 0;
+}
+.deriv__note .f {
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  /* left-hand side on its own line, then the aligned column; notes drop */
+  .deriv {
+    grid-template-columns: 1.4em auto 1fr;
+  }
+  .deriv__lhs {
+    grid-column: 1 / -1;
+  }
+  .deriv__lhs:empty {
+    display: none;
+  }
+  .deriv__note {
+    font-size: 0.7rem;
+  }
 }
