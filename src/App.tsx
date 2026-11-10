@@ -73,7 +73,7 @@ export default function App() {
     else delete el.dataset.air;
   }, [airClass]);
   useEffect(() => {
-    document.title = air ? `Tynys — ${CLASS_LABEL[air.hmm.state_now].toLowerCase()} air in ${cityName}` : `Tynys — air in ${cityName}`;
+    document.title = air ? `Tynys — particle pollution ${CLASS_LABEL[air.hmm.state_now].toLowerCase()} in ${cityName}` : `Tynys — air in ${cityName}`;
   }, [air, cityName]);
 
   // ---------------------------------------------------------------- plan
