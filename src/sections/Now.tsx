@@ -103,10 +103,14 @@ function NowHero({ air, cityName }: { air: AirResponse; cityName: string }) {
           <ClassChip i={c.band} /> {CLASS_LABEL[c.band].toLowerCase()} band, {CLASS_RANGE[c.band]}
         </span>
         <span className="hero__extra">
-          PM10 <span className="num">{num(c.pm10, 1)}</span>
+          {c.pm10 !== null && Number.isFinite(c.pm10) && (
+            <>
+              PM10 <span className="num">{num(c.pm10, 1)}</span>
+            </>
+          )}
           {air.weather && (
             <>
-              {' · '}wind <span className="num">{Math.round(air.weather.wind_kmh)}</span> km/h{' · '}
+              {c.pm10 !== null && Number.isFinite(c.pm10) ? ' · ' : ''}wind <span className="num">{num(air.weather.wind_kmh, 0)}</span> km/h{' · '}
               <span className="num">{num(air.weather.temp_c, 0)}</span> °C
             </>
           )}

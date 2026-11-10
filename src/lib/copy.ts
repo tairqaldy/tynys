@@ -62,7 +62,7 @@ export function decisionSentence(plan: PlanResponse): Decision {
   if (d.best_time) {
     const p = plan.hours.find((h) => h.t === d.best_t)?.p_go_cumulative ?? 0.5;
     return {
-      head: `Wait — most likely around ${relTime(d.best_time, plan.now)}.`,
+      head: `Wait — you will probably have gone by ${relTime(d.best_time, plan.now)}.`,
       sub: `If you follow the plan, there is ${aPct(p)} chance you will have gone by then${
         plan.p_skip > 0.005 ? ` and ${aPct(plan.p_skip)} chance it ends in skipping` : ''
       }.`,

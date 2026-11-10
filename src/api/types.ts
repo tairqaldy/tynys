@@ -136,7 +136,7 @@ export interface AirResponse {
   now: string;
   source: Source;
   snapshot_taken?: string;
-  current: { pm25: number; pm10: number; band: ClassIdx };
+  current: { pm25: number; pm10: number | null; band: ClassIdx };
   readings: HourReading[];
   forecast: HourReading[];
   hmm: HmmBlock;
@@ -162,6 +162,8 @@ export interface PlanHour {
   t: number;
   time: string;
   forecast_band: ClassIdx;
+  /** whether forecast_band comes from the latest reading (t = 0) or the forecast; absent → t = 0 is "reading" */
+  band_source?: 'reading' | 'forecast';
   expected_pm25: number;
   transition: Mat4 | null;
   q_go: Vec4;
@@ -243,6 +245,8 @@ export interface RouteResponse {
   at: string;
   pm25_at: number;
   ventilation_m3h: number;
+  /** set when the backend moved a stale `at` to now */
+  at_clamped?: boolean;
   shortest: RouteInfo;
   cleanest: CleanestRoute;
   comparison: {

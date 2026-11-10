@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { CityMeta, KindMeta, RouteResponse } from '../api/types';
-import { Assumption, ErrorState, QuestionHead, Skeleton } from '../components/common';
+import type { ApiError } from '../api/client';
+import { Assumption, QuestionHead, Skeleton } from '../components/common';
 import { PlaceField, type RoutePoint } from '../components/PlaceField';
 import { RouteCard } from '../components/RouteFacts';
 import { routeSentence } from '../lib/copy';
@@ -27,6 +28,8 @@ interface Props {
   example: boolean;
   replaying: boolean;
   pointMsg: string | null;
+  onUseExample: () => void;
+  onClearPoints: () => void;
   mapSlot: ReactNode;
   mapFailed: string | null;
 }
@@ -104,6 +107,10 @@ export function Which(p: Props) {
         </div>
       )}
 
+      {p.from && p.to && req.error && !req.loading && (
+        <RouteError error={req.error} onRetry={req.retry} onUseExample={p.onUseExample} onClearPoints={p.onClearPoints} />
+      )}
+
       {p.pointMsg && (
         <p className="inline-error" role="alert">
           {p.pointMsg}
@@ -122,9 +129,6 @@ export function Which(p: Props) {
       )}
 
       {p.from && p.to && !route && req.loading && <Skeleton lines={3} />}
-      {p.from && p.to && req.error && !req.loading && (
-        <ErrorState title="No route this time." message={req.error.message} onRetry={req.error.status >= 500 || req.error.status === 0 ? req.retry : undefined} />
-      )}
 
       {route && p.from && p.to && (
         <div className={`q-body${updating ? ' is-updating' : ''}`} aria-busy={updating}>
@@ -132,7 +136,7 @@ export function Which(p: Props) {
             {routeSentence(route, p.verb)}
           </p>
           <p className="answer-sub">
-            Scored for {p.atText}, when the model expects about <span className="num">{num(route.pm25_at, 1)}</span> µg/m³
+            Scored for {route.at_clamped ? 'now' : p.atText}, when the model expects about <span className="num">{num(route.pm25_at, 1)}</span> µg/m³
             PM2.5 in the city.
             {route.comparison.same_route
               ? ' One line on the map.'
@@ -217,6 +221,61 @@ function ReplayControls({
           </>
         )}
       </p>
+    </div>
+  );
+}
+
+/** Problems with the chosen points: the API's own message plus how to fix it. */
+const FIXES: Record<string, string> = {
+  outside_area: 'Move the point inside the dashed outline on the map, or choose a place below.',
+  far_from_streets: 'Move the point onto or next to a street or path.',
+  too_far: 'Pick two points closer together — at most 12 km apart in a straight line.',
+  same_point: 'Pick two different places.',
+  no_route: 'Move one of the points to a nearby street; this pair is not connected by walkable ways.',
+  bad_point: 'Pick the point again: search, click the map or choose a place below.',
+};
+
+function RouteError({
+  error,
+  onRetry,
+  onUseExample,
+  onClearPoints,
+}: {
+  error: ApiError;
+  onRetry: () => void;
+  onUseExample: () => void;
+  onClearPoints: () => void;
+}) {
+  const fix = FIXES[error.code];
+  if (fix) {
+    return (
+      <div className="route-error" role="alert">
+        <p className="route-error__msg">{error.message}</p>
+        <p className="route-error__fix">{fix}</p>
+        <div className="route-error__actions">
+          <button type="button" className="btn btn--quiet" onClick={onClearPoints}>
+            Clear both points
+          </button>
+          <button type="button" className="btn btn--quiet" onClick={onUseExample}>
+            Show the example route
+          </button>
+        </div>
+      </div>
+    );
+  }
+  // not caused by the points: network, server, or a request the page built wrongly
+  return (
+    <div className="route-error" role="alert">
+      <p className="route-error__msg">The route could not be computed this time.</p>
+      <p className="route-error__fix">{error.message}</p>
+      <div className="route-error__actions">
+        <button type="button" className="btn" onClick={onRetry}>
+          Try again
+        </button>
+        <button type="button" className="btn btn--quiet" onClick={onUseExample}>
+          Show the example route
+        </button>
+      </div>
     </div>
   );
 }

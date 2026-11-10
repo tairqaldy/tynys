@@ -31,8 +31,8 @@ export function pct(p: number, digits = 0): string {
 }
 
 /** Fixed decimals with a true minus sign. */
-export function num(x: number, digits = 2): string {
-  if (!Number.isFinite(x)) return x > 0 ? '∞' : '−∞';
+export function num(x: number | null | undefined, digits = 2): string {
+  if (x === null || x === undefined || !Number.isFinite(x)) return '—';
   const s = Math.abs(x).toFixed(digits);
   const isZero = Number(s) === 0;
   return (x < 0 && !isZero ? '−' : '') + s;

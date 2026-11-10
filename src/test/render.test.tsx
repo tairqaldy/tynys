@@ -83,6 +83,8 @@ describe.each([640, 343])('sections at %ipx', (w) => {
           verb="walking"
           onReplay={() => {}}
           onClear={() => {}}
+          onUseExample={() => {}}
+          onClearPoints={() => {}}
           shown={Math.floor(route.cleanest.explored.length / 2)}
           example
           replaying={false}
@@ -93,6 +95,49 @@ describe.each([640, 343])('sections at %ipx', (w) => {
       );
       clean(html);
       expect(html).toContain('less traffic exposure');
+    });
+
+    it(`${city}: Now with PM10 and weather missing`, () => {
+      width = w;
+      const a2 = { ...air, current: { ...air.current, pm10: null }, weather: null };
+      const html = renderToStaticMarkup(<Now req={req(a2)} air={a2} cityName={cm.name} reliability={0.8} setReliability={() => {}} />);
+      clean(html);
+      expect(html).not.toContain('PM10');
+      expect(html).not.toContain('∞');
+    });
+
+    it(`${city}: Which way with a point error offers a fix`, () => {
+      const p = (e: { lat: number; lon: number }) => ({ lat: e.lat, lon: e.lon, label: 'x' });
+      const err = Object.assign(new Error('The start point is outside the mapped area.'), { code: 'outside_area', status: 400 });
+      const html = renderToStaticMarkup(
+        <Which
+          city={cm}
+          kinds={meta.kinds}
+          from={p(route.from)}
+          to={p(route.to)}
+          setPoint={() => {}}
+          swap={() => {}}
+          pickTarget="to"
+          setPickTarget={() => {}}
+          req={{ data: null, dataKey: null, error: err as never, loading: false, retry: () => {} }}
+          route={null}
+          atText="now"
+          verb="walking"
+          onReplay={() => {}}
+          onClear={() => {}}
+          onUseExample={() => {}}
+          onClearPoints={() => {}}
+          shown={null}
+          example={false}
+          replaying={false}
+          pointMsg={null}
+          mapSlot={null}
+          mapFailed={null}
+        />,
+      );
+      expect(html).toContain('outside the mapped area');
+      expect(html).toContain('dashed outline');
+      expect(html).toContain('Show the example route');
     });
 
     it(`${city}: About`, () => {

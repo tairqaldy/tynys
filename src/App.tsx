@@ -122,6 +122,7 @@ export default function App() {
   const [replaying, setReplaying] = useState(false);
   const [shown, setShown] = useState<number | null>(null);
   const [mapFailed, setMapFailed] = useState<string | null>(null);
+  const [basemap, setBasemap] = useState<'loading' | 'ready' | 'failed'>('loading');
   // any point the user sets ends the example
   const setFrom = useCallback((p: RoutePoint | null) => {
     setFromState(p);
@@ -144,13 +145,10 @@ export default function App() {
     setPickTarget('from');
   };
 
-  // Example route on first load and after a city switch, when nothing is chosen yet.
-  useEffect(() => {
-    if (!cityMeta || seeded.current === city) return;
-    seeded.current = city;
-    if (from || to) return;
+  const seedExample = useCallback(() => {
+    if (!cityMeta) return;
     const byId = (id: string) => cityMeta.places.find((p) => p.id === id);
-    const [a, b] = STARTER[city];
+    const [a, b] = STARTER[cityMeta.id];
     const pa = byId(a) ?? cityMeta.places[0];
     const pb = byId(b) ?? cityMeta.places[1];
     if (!pa || !pb) return;
@@ -158,7 +156,14 @@ export default function App() {
     setToState({ lat: pb.lat, lon: pb.lon, label: pb.name });
     setExample(true);
     setPickTarget('from');
-  }, [cityMeta, city, from, to]);
+  }, [cityMeta]);
+
+  // Example route on first load and after a city switch, when nothing is chosen yet.
+  useEffect(() => {
+    if (!cityMeta || seeded.current === city) return;
+    seeded.current = city;
+    if (!from && !to) seedExample();
+  }, [cityMeta, city, from, to, seedExample]);
 
   const inside = useCallback(
     (p: { lat: number; lon: number }) => {
@@ -285,7 +290,16 @@ export default function App() {
   );
 
   const legend = (
-    <MapLegend airLabel={air ? CLASS_LABEL[air.hmm.state_now] : null} hasRoute={!!route} same={!!route?.comparison.same_route} />
+    <>
+      <MapLegend airLabel={air ? CLASS_LABEL[air.hmm.state_now] : null} hasRoute={!!route} same={!!route?.comparison.same_route} />
+      {basemap !== 'ready' && !mapFailed && (
+        <p className={`map-status map-status--${basemap}`} role="status">
+          {basemap === 'loading'
+            ? 'Loading map…'
+            : 'The street map could not load, so the routes are drawn on a plain background.'}
+        </p>
+      )}
+    </>
   );
 
   return (
@@ -337,6 +351,12 @@ export default function App() {
               example={example}
               replaying={replaying}
               pointMsg={pointMsg}
+              onUseExample={seedExample}
+              onClearPoints={() => {
+                setFrom(null);
+                setTo(null);
+                setPickTarget('from');
+              }}
               mapFailed={mapFailed}
               mapSlot={
                 narrow ? (
@@ -386,6 +406,7 @@ export default function App() {
         cooperative={narrow}
         onReplayDone={() => setReplaying(false)}
         onFail={setMapFailed}
+        onStatus={setBasemap}
       />
       </Suspense>
     </>

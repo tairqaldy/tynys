@@ -8,7 +8,7 @@ import {
   setWorkerUrl,
   type GeoJSONSource,
   type FilterSpecification,
-  type TransformStyleFunction,
+  type StyleSpecification,
 } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 // MapLibre builds its worker URL at runtime, which bundlers cannot see; point it at the emitted file.
@@ -43,6 +43,7 @@ interface Props {
   cooperative: boolean;
   onReplayDone: () => void;
   onFail: (msg: string) => void;
+  onStatus: (s: BasemapStatus) => void;
 }
 
 type FC = FeatureCollection;
@@ -84,10 +85,19 @@ function markerEl(letter: string): HTMLElement {
 }
 
 /** Drop road-shield layers: not needed on a quiet basemap, and their filters warn in MapLibre 6. */
-const quiet: TransformStyleFunction = (_prev, next) => ({
-  ...next,
-  layers: next.layers.filter((l) => !/shield/i.test(l.id)),
+const quiet = (style: StyleSpecification): StyleSpecification => ({
+  ...style,
+  layers: style.layers.filter((l) => !/shield/i.test(l.id)),
 });
+
+/** A plain paper-coloured style: shown at once, and kept if the basemap cannot be loaded. */
+const plainStyle = (): StyleSpecification => ({
+  version: 8,
+  sources: {},
+  layers: [{ id: 'paper', type: 'background', paint: { 'background-color': cssVar('--paper') } }],
+});
+
+export type BasemapStatus = 'loading' | 'ready' | 'failed';
 
 const HIDE_ALL: FilterSpecification = ['<', ['get', 'i'], -1];
 /** how many of the most recently expanded nodes are drawn darker, so the search frontier shows */
@@ -111,8 +121,8 @@ export function MapView(p: Props) {
     try {
       map = new MlMap({
         container: p.container,
-        style: MAP_STYLES[p.theme],
-        transformStyle: quiet,
+        // start on plain paper so the coverage outline and routes show while the basemap downloads
+        style: plainStyle(),
         center: [71.4304, 51.1282],
         zoom: 12,
         attributionControl: false,
@@ -229,14 +239,40 @@ export function MapView(p: Props) {
   }
 
   // ------------------------------------------------------------ theme
-  const firstTheme = useRef(true);
+  // Fetch the basemap style ourselves so a failure leaves the plain style (and the routes) in place.
   useEffect(() => {
-    if (firstTheme.current) {
-      firstTheme.current = false;
-      return;
-    }
-    mapRef.current?.setStyle(MAP_STYLES[p.theme], { transformStyle: quiet });
-  }, [p.theme]);
+    const m = mapRef.current;
+    if (!m) return;
+    const ac = new AbortController();
+    const timer = window.setTimeout(() => ac.abort(), 15000);
+    let done = false;
+    cb.current.onStatus('loading');
+    fetch(MAP_STYLES[p.theme], { signal: ac.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<StyleSpecification>;
+      })
+      .then((json) => {
+        if (done) return;
+        m.setStyle(quiet(json), { diff: false });
+        m.once('idle', () => {
+          if (!done) cb.current.onStatus('ready');
+        });
+      })
+      .catch(() => {
+        if (done) return;
+        // keep the plain style (still in place unless a basemap loaded before); install() re-adds our layers
+        if (m.getLayer('paper')) m.setPaintProperty('paper', 'background-color', cssVar('--paper'));
+        else m.setStyle(plainStyle(), { diff: false });
+        cb.current.onStatus('failed');
+      })
+      .finally(() => window.clearTimeout(timer));
+    return () => {
+      done = true;
+      ac.abort();
+      window.clearTimeout(timer);
+    };
+  }, [p.theme, p.container]);
 
   // ------------------------------------------------------------ air → haze and accent
   useEffect(() => {

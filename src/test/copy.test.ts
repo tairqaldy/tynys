@@ -54,7 +54,7 @@ describe('sentences', () => {
       { action: 'wait', best_t: 2, best_time: '2026-11-10T13:00' },
       { hours: base.hours.map((h) => ({ ...h, p_go_cumulative: h.t >= 2 ? 0.6 : 0 })) },
     );
-    expect(decisionSentence(w).head).toBe('Wait — most likely around 13:00.');
+    expect(decisionSentence(w).head).toBe('Wait — you will probably have gone by 13:00.');
     expect(decisionSentence(withDecision({ action: 'wait', best_t: null, best_time: null })).head).toBe('Probably not today.');
   });
   it('explains the choice with the returned numbers', () => {

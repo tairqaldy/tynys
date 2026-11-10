@@ -131,7 +131,7 @@ export const SPECS = {
     now: time,
     source: { oneOf: ['live', 'snapshot'] },
     snapshot_taken: { optional: 'string' },
-    current: { pm25: 'number', pm10: 'number', band: 'class' },
+    current: { pm25: 'number', pm10: { nullable: 'number' }, band: 'class' },
     readings: { array: { time, pm25: 'number', band: 'class' } },
     forecast: { array: { time, pm25: 'number', band: 'class' } },
     hmm: {
@@ -193,6 +193,7 @@ export const SPECS = {
         t: 'int',
         time,
         forecast_band: 'class',
+        band_source: { optional: { oneOf: ['reading', 'forecast'] } },
         expected_pm25: 'number',
         transition: { nullable: 'mat4' },
         q_go: 'vec4',
@@ -242,6 +243,7 @@ export const SPECS = {
       at: time,
       pm25_at: 'number',
       ventilation_m3h: 'number',
+      at_clamped: { optional: 'boolean' },
       shortest: info,
       cleanest: { ...info, explored: { array: 'latlon' } },
       comparison: {

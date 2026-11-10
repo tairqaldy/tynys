@@ -259,6 +259,15 @@
   color: var(--ci);
   border-top: 3px solid var(--cf);
 }
+.policy__fc.is-reading {
+  border-top-style: double;
+  border-top-width: 4px;
+}
+.policy__fc sup {
+  font-size: 0.7em;
+  margin-left: 1px;
+  color: var(--ink-3);
+}
 .policy__legend {
   margin-top: var(--space-3);
   display: flex;

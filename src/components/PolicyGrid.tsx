@@ -73,14 +73,24 @@ export function PolicyGrid({ plan }: { plan: PlanResponse }) {
           <tfoot>
             <tr>
               <th scope="row" className="policy__foot">
-                Forecast
+                Reading / forecast
               </th>
-              {plan.hours.map((h) => (
-                <td key={h.t} className="policy__fc" data-c={CLASS_IDS[h.forecast_band]}>
-                  <span aria-hidden="true">{CLASS_LETTER[h.forecast_band]}</span>
-                  <span className="sr-only">{CLASS_LABEL[h.forecast_band]}</span>
-                </td>
-              ))}
+              {plan.hours.map((h) => {
+                const fromReading = (h.band_source ?? (h.t === 0 ? 'reading' : 'forecast')) === 'reading';
+                return (
+                  <td
+                    key={h.t}
+                    className={`policy__fc${fromReading ? ' is-reading' : ''}`}
+                    data-c={CLASS_IDS[h.forecast_band]}
+                    title={fromReading ? 'Class of the latest model reading' : 'Class of the forecast value'}
+                  >
+                    <span aria-hidden="true">{CLASS_LETTER[h.forecast_band]}{fromReading ? <sup>R</sup> : null}</span>
+                    <span className="sr-only">
+                      {CLASS_LABEL[h.forecast_band]} ({fromReading ? 'reading' : 'forecast'})
+                    </span>
+                  </td>
+                );
+              })}
             </tr>
           </tfoot>
         </table>
@@ -101,8 +111,9 @@ export function PolicyGrid({ plan }: { plan: PlanResponse }) {
           <span className="legend-now" aria-hidden="true" /> most likely class now
         </span>
         <span className="policy__legend-note">
-          What the plan does if the air is in each class at each hour. Read a column top to bottom: the worse the air, the
-          more it prefers to wait or skip.
+          What the plan does if the air is in each class at each hour. Usually the worse the air, the more the plan prefers
+          to wait or skip — not always: waiting is worth more when the forecast promises a bigger improvement.
+          The bottom row is the class of the model value used at each hour: the latest reading now (R), the forecast after.
         </span>
       </figcaption>
     </figure>
