@@ -110,8 +110,7 @@ export function Strip24({ readings, filtered }: { readings: HourReading[]; filte
         </svg>
       )}
       <figcaption>
-        Last 24 hours of model readings for the city grid cell. <em>Reading</em> is the class of each hourly value;{' '}
-        <em>Viterbi</em> is the most likely sequence of true classes given all 24 readings at once.
+        <em>Reading</em>: the class of each hourly value. <em>Viterbi</em>: the most likely sequence of true classes.
       </figcaption>
       <SrTable
         caption="Last 24 hours: model PM2.5, reading class and most likely class"

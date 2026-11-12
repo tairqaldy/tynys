@@ -11,9 +11,12 @@ import { dayMonth, hhmm, relTime } from './lib/format';
 import { useDebounced, useMediaQuery, useReducedMotion, useRequest } from './lib/hooks';
 import { load, save } from './lib/storage';
 import { parseUrlState, writeUrlState, type UrlPoint } from './lib/urlState';
+import type { Navigate } from './lib/route';
+import { useTheme } from './lib/theme';
 import { About } from './sections/About';
 import { MathSection } from './sections/MathSection';
 import { Now } from './sections/Now';
+import { Overview } from './sections/Overview';
 import { When, type PlanControls } from './sections/When';
 import { Which } from './sections/Which';
 
@@ -29,8 +32,6 @@ const FALLBACK_CITIES: { id: CityId; name: string }[] = [
   { id: 'almaty', name: 'Almaty' },
 ];
 
-type Theme = 'light' | 'dark';
-
 /** The example route drawn on first load, so the map is never empty: [from id, to id] per city. */
 const STARTER: Record<CityId, [string, string]> = {
   astana: ['khan-shatyr', 'ak-orda'],
@@ -40,24 +41,11 @@ const STARTER: Record<CityId, [string, string]> = {
 const mapPointLabel = (lat: number, lon: number) => `Map point ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 const fromUrl = (p?: UrlPoint): RoutePoint | null => (p ? { lat: p.lat, lon: p.lon, label: p.name ?? mapPointLabel(p.lat, p.lon) } : null);
 
-export default function App() {
+export default function App({ navigate }: { navigate: Navigate }) {
   // ---------------------------------------------------------------- persistent choices (URL first, then storage)
   const [urlInit] = useState(() => parseUrlState(window.location.search));
   const [city, setCityState] = useState<CityId>(() => urlInit.city ?? (load('tynys.city') === 'almaty' ? 'almaty' : 'astana'));
-  const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
-  const [themePref, setThemePref] = useState<Theme | null>(() => {
-    const t = load('tynys.theme');
-    return t === 'light' || t === 'dark' ? t : null;
-  });
-  const theme: Theme = themePref ?? (systemDark ? 'dark' : 'light');
-  useLayoutEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-  const toggleTheme = () => {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setThemePref(next);
-    save('tynys.theme', next);
-  };
+  const [theme, toggleTheme] = useTheme();
 
   const usingMock = useSyncExternalStore(mockStore.subscribe, mockStore.get, () => false);
   const reducedMotion = useReducedMotion();
@@ -306,6 +294,8 @@ export default function App() {
     <>
       <ClassPatterns />
       <Header
+        page="planner"
+        navigate={navigate}
         city={city}
         setCity={setCity}
         cities={meta?.cities.map((c) => ({ id: c.id, name: c.name })) ?? FALLBACK_CITIES}
@@ -322,6 +312,7 @@ export default function App() {
                 : 'Live air data could not be fetched, so these numbers come from a saved snapshot of the same model.'}
             </p>
           )}
+          <Overview air={air} plan={plan} route={route} cityName={cityName} airError={!air && airReq.error !== null} />
           <Now req={airReq} air={air} cityName={cityName} reliability={reliability} setReliability={setReliability} />
           <When req={planReq} plan={plan} activities={activities} controls={controls} setControls={setControls} />
           {cityMeta && meta ? (
@@ -377,7 +368,7 @@ export default function App() {
             </section>
           )}
           <MathSection air={air} plan={plan} route={route} kinds={meta?.kinds ?? []} />
-          <About meta={meta} city={cityMeta} />
+          <About meta={meta} city={cityMeta} navigate={navigate} />
         </main>
         {!narrow && (
           <aside className="map-aside" aria-label="Map">

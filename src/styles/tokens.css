@@ -31,8 +31,18 @@
   --radius-lg: 10px;
   --header-h: 60px;
   --column-w: 620px;
+  --radius-xl: 16px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* motion: enter with ease-out, leave with ease-in, nothing bounces */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 150ms;
+  --dur-2: 280ms;
+  --dur-3: 480ms;
+  --dur-4: 720ms;
   --atmo-dur: 1.4s;
+  --page-w: 1200px;
 
   color-scheme: light;
 

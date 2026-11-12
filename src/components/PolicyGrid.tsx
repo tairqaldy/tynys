@@ -111,9 +111,7 @@ export function PolicyGrid({ plan }: { plan: PlanResponse }) {
           <span className="legend-now" aria-hidden="true" /> most likely class now
         </span>
         <span className="policy__legend-note">
-          What the plan does if the air is in each class at each hour. Usually the worse the air, the more the plan prefers
-          to wait or skip — not always: waiting is worth more when the forecast promises a bigger improvement.
-          The bottom row is the class of the model value used at each hour: the latest reading now (R), the forecast after.
+          The best action for every class and hour. Bottom row: the class fed in — the reading now (R), then the forecast.
         </span>
       </figcaption>
     </figure>

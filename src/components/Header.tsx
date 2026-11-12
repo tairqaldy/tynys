@@ -1,36 +1,59 @@
 import type { CityId } from '../api/types';
+import type { Navigate, Page } from '../lib/route';
+import { BrandMark } from './Brand';
 import { Segmented } from './controls';
 
 interface Props {
+  page: Page;
+  navigate: Navigate;
   city: CityId;
   setCity: (c: CityId) => void;
   cities: { id: CityId; name: string }[];
   theme: 'light' | 'dark';
   toggleTheme: () => void;
-  badges: React.ReactNode;
+  badges?: React.ReactNode;
 }
 
-export function Header({ city, setCity, cities, theme, toggleTheme, badges }: Props) {
+const PAGES: { id: Page; label: string; short: string; href: string }[] = [
+  { id: 'planner', label: 'Planner', short: 'Planner', href: '/' },
+  { id: 'docs', label: 'How it works', short: 'Docs', href: '/docs' },
+];
+
+export function Header({ page, navigate, city, setCity, cities, theme, toggleTheme, badges }: Props) {
+  const go = (e: React.MouseEvent<HTMLAnchorElement>, p: Page) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    if (p !== page) navigate(p);
+    else window.scrollTo({ top: 0 });
+  };
   return (
     <header className="topbar">
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <div className="topbar__brand">
+      <a className="topbar__brand" href="/" onClick={(e) => go(e, 'planner')} aria-label="Tynys, the planner">
+        <BrandMark />
         <span className="wordmark">Tynys</span>
         <span className="wordmark__gloss" lang="kk">
           тыныс · breath
         </span>
-      </div>
-      <nav className="topbar__nav" aria-label="Sections">
-        <a href="#now">Now</a>
-        <a href="#when">When</a>
-        <a href="#which">Which way</a>
-        <a href="#math">Math</a>
-        <a href="#about">About</a>
+      </a>
+      <nav className="tabs" aria-label="Pages">
+        {PAGES.map((p) => (
+          <a
+            key={p.id}
+            href={p.href}
+            className="tabs__a"
+            aria-current={p.id === page ? 'page' : undefined}
+            onClick={(e) => go(e, p.id)}
+          >
+            <span className="tabs__long">{p.label}</span>
+            <span className="tabs__short">{p.short}</span>
+          </a>
+        ))}
       </nav>
       <div className="topbar__tools">
-        <div className="topbar__badges">{badges}</div>
+        {badges && <div className="topbar__badges">{badges}</div>}
         <Segmented
           label="City"
           name="city"

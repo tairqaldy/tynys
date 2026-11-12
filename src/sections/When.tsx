@@ -6,6 +6,7 @@ import { PolicyGrid } from '../components/PolicyGrid';
 import { decisionSentence, planReason } from '../lib/copy';
 import { hhmm, num } from '../lib/format';
 import type { RequestState } from '../lib/hooks';
+import { useTweenVec } from '../lib/motion';
 
 export interface PlanControls {
   activity: ActivityId;
@@ -40,7 +41,7 @@ export function When({ req, plan, activities, controls, setControls }: Props) {
   const forcedSensitive = controls.activity === 'kids';
   return (
     <section className="q" aria-labelledby="q-when" id="when">
-      <QuestionHead n={2} id="q-when" kicker="Markov decision process · backward induction" title="When should I go out?" />
+      <QuestionHead n={2} id="q-when" kicker="Markov decision process" title="When should I go out?" />
 
       <form className="plan-controls" onSubmit={(e) => e.preventDefault()} aria-label="Plan settings">
         <Chips
@@ -120,9 +121,8 @@ export function When({ req, plan, activities, controls, setControls }: Props) {
           <PolicyGrid plan={plan} />
           <p className="fineprint">
             <Assumption>
-              Benefit {num(plan.inputs.benefit, 0)} points for {act?.label.toLowerCase() ?? 'the activity'}; harm per hour
-              outside {plan.inputs.harm.join(' / ')} for low / moderate / elevated / high air; waiting costs{' '}
-              {num(plan.inputs.wait_cost, 1)} per hour. These are utility points chosen by hand, not health data.
+              Benefit {num(plan.inputs.benefit, 0)} for {act?.label.toLowerCase() ?? 'the activity'}, harm per hour{' '}
+              {plan.inputs.harm.join(' / ')} (low → high), waiting {num(plan.inputs.wait_cost, 1)} per hour: utility points set by hand.
             </Assumption>
           </p>
         </div>
@@ -134,29 +134,52 @@ export function When({ req, plan, activities, controls, setControls }: Props) {
 function Decision({ plan }: { plan: PlanResponse }) {
   const d = decisionSentence(plan);
   const a = plan.decision;
+  const rows: { label: string; v: number; win: boolean }[] = [
+    { label: 'Go now', v: a.q_go, win: a.action === 'go' },
+    { label: 'Wait an hour', v: a.q_wait, win: a.action === 'wait' },
+  ];
+  if (!plan.inputs.must) rows.push({ label: 'Skip', v: a.q_skip ?? 0, win: a.action === 'skip' });
   return (
     <div className="decision" aria-live="polite">
       <p className={`decision__head decision__head--${a.action}`}>{d.head}</p>
       <p className="decision__sub">{d.sub}</p>
-      <div className="qvals" aria-label="Belief-weighted value of each action now">
-        <QVal label="go now" v={a.q_go} win={a.action === 'go'} />
-        <QVal label="wait an hour" v={a.q_wait} win={a.action === 'wait'} />
-        {!plan.inputs.must && <QVal label="skip" v={a.q_skip ?? 0} win={a.action === 'skip'} />}
-      </div>
-      <p className="decision__why">{planReason(plan)}</p>
-      <p className="fineprint">
-        Checked at {hhmm(plan.now)} for the next {plan.inputs.deadline_hours} h. Points are made-up utility units.
-      </p>
+      <QBars rows={rows} />
+      <details className="why">
+        <summary>Why</summary>
+        <p>{planReason(plan)}</p>
+        <p className="fineprint">
+          Checked at {hhmm(plan.now)} for the next {plan.inputs.deadline_hours} h. Points are utility units set by hand.
+        </p>
+      </details>
     </div>
   );
 }
 
-function QVal({ label, v, win }: { label: string; v: number; win: boolean }) {
+/** Belief-weighted value of each action now, as bars from a shared zero. */
+function QBars({ rows }: { rows: { label: string; v: number; win: boolean }[] }) {
+  const vals = useTweenVec(rows.map((r) => r.v), 600);
+  const lo = Math.min(0, ...rows.map((r) => r.v));
+  const hi = Math.max(0, ...rows.map((r) => r.v));
+  const span = hi - lo || 1;
+  const zero = ((0 - lo) / span) * 100;
   return (
-    <span className={`qval${win ? ' is-win' : ''}`}>
-      <span className="qval__label">{label}</span>
-      <span className="qval__v num">{num(v, 2)}</span>
-      {win && <span className="sr-only"> (best)</span>}
-    </span>
+    <div className="qbars" role="list" aria-label="Value of each action now, weighted by the belief">
+      {rows.map((r, i) => {
+        const v = vals[i] ?? r.v;
+        const x0 = Math.min(zero, ((v - lo) / span) * 100);
+        const w = Math.abs(((v - lo) / span) * 100 - zero);
+        return (
+          <div key={r.label} className={`qbar${r.win ? ' is-win' : ''}`} role="listitem">
+            <span className="qbar__label">{r.label}</span>
+            <span className="qbar__track">
+              <span className="qbar__zero" style={{ left: `${zero}%` }} />
+              <span className="qbar__fill" style={{ left: `${x0}%`, width: `${w}%` }} />
+            </span>
+            <span className="qbar__v num">{num(v, 2)}</span>
+            {r.win && <span className="sr-only"> (best)</span>}
+          </div>
+        );
+      })}
+    </div>
   );
 }

@@ -83,10 +83,9 @@ export function PredictedBelief({ predicted }: { predicted: PredictedHour[] }) {
         </svg>
       )}
       <figcaption>
-        Where the model expects the class to be over the next {n} hours. Each column is a belief that sums to 100%; the
-        thin row under it is the class of the forecast value, which the model trusts less the further ahead it is (from{' '}
-        <span className="num">{first ? num(first.forecast_reliability, 3) : '–'}</span> down to{' '}
-        <span className="num">{lastP ? num(lastP.forecast_reliability, 3) : '–'}</span>).
+        Each column is a belief over the four classes for one hour. The thin row is the forecast's class, trusted less
+        further ahead (<span className="num">{first ? num(first.forecast_reliability, 2) : '–'}</span> →{' '}
+        <span className="num">{lastP ? num(lastP.forecast_reliability, 2) : '–'}</span>).
       </figcaption>
       <SrTable
         caption="Predicted belief by hour"

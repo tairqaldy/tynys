@@ -2,10 +2,13 @@ import type { Vec4 } from '../api/types';
 import { CLASS_LABEL, CLASS_LETTER, CLASS_RANGE, argmax, classFill, classInk, classOn, classPattern } from '../lib/classes';
 import { pct } from '../lib/format';
 import { useWidth } from '../lib/hooks';
+import { useInView, useTweenVec } from '../lib/motion';
 
 /** The belief over the four classes as horizontal bars with direct percentage labels. */
 export function BeliefBars({ belief, caption }: { belief: Vec4; caption: string }) {
   const [ref, w] = useWidth<HTMLDivElement>();
+  const [viewRef, seen] = useInView<HTMLDivElement>('0px');
+  const shown = useTweenVec(seen ? belief : [0, 0, 0, 0], 800);
   const rowH = 36;
   const labelW = 132;
   const pctW = 52;
@@ -15,11 +18,12 @@ export function BeliefBars({ belief, caption }: { belief: Vec4; caption: string 
   const summary = `${caption}: ${belief.map((p, i) => `${CLASS_LABEL[i]} ${pct(p)}`).join(', ')}.`;
   return (
     <figure className="chart belief" ref={ref}>
+      <div ref={viewRef} />
       {w > 0 && (
         <svg width={w} height={rowH * 4} role="img" aria-label={summary}>
           {belief.map((p, i) => {
             const y = i * rowH;
-            const bw = Math.max(p > 0 ? 1.5 : 0, p * trackW);
+            const bw = Math.max(p > 0 ? 1.5 : 0, (shown[i] ?? p) * trackW);
             return (
               <g key={i} transform={`translate(0 ${y})`} className={i === top ? 'is-top' : undefined}>
                 <rect x="0" y="7" width="20" height="20" rx="3" fill={classFill(i)} />

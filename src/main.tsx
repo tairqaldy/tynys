@@ -10,10 +10,12 @@ import './styles/layout.css';
 import './styles/charts.css';
 import './styles/controls.css';
 import './styles/math.css';
-import App from './App';
+import './styles/overview.css';
+import './styles/motion.css';
+import Root from './Root';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>,
 );

@@ -16,6 +16,7 @@ const { When } = await import('../sections/When');
 const { Which } = await import('../sections/Which');
 const { MathSection } = await import('../sections/MathSection');
 const { About } = await import('../sections/About');
+const { Overview } = await import('../sections/Overview');
 
 const files = import.meta.glob('../mocks/*.json', { eager: true, import: 'default' }) as Record<string, unknown>;
 const get = <T,>(n: string) => files[`../mocks/${n}.json`] as T;
@@ -41,7 +42,16 @@ describe.each([640, 343])('sections at %ipx', (w) => {
       width = w;
       const html = renderToStaticMarkup(<Now req={req(air)} air={air} cityName={cm.name} reliability={0.8} setReliability={() => {}} />);
       clean(html);
+      expect(html).toContain('How is the air right now?');
+    });
+
+    it(`${city}: Overview`, () => {
+      width = w;
+      const plan = get<PlanResponse>(`plan_${city}_walk`);
+      const html = renderToStaticMarkup(<Overview air={air} plan={plan} route={route} cityName={cm.name} airError={false} />);
+      clean(html);
       expect(html).toContain(`Particle pollution in ${cm.name}`);
+      expect(html).toContain('When to go');
     });
 
     for (const act of ['walk', 'run', 'kids', 'errand'] as const) {
@@ -141,9 +151,10 @@ describe.each([640, 343])('sections at %ipx', (w) => {
     });
 
     it(`${city}: About`, () => {
-      const html = renderToStaticMarkup(<About meta={meta} city={cm} />);
+      const html = renderToStaticMarkup(<About meta={meta} city={cm} navigate={() => {}} />);
       clean(html);
       expect(html).toContain('Tair Kaldybayev');
+      expect(html).toContain('Dameli Kalikhanova');
     });
   }
 });

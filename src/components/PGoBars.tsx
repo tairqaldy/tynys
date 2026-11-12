@@ -94,10 +94,8 @@ export function PGoBars({ plan }: { plan: PlanResponse }) {
         </svg>
       )}
       <figcaption>
-        Chance that you set off at each hour (local time) if you follow the plan. The thin step line is the running
-        total; the{' '}
-        <strong>median</strong> hour is where it first reaches 50%.
-        {showSkip && ' The last column is the chance the plan ends in skipping.'}
+        Chance you set off at each hour if you follow the plan; the step line is the running total.
+        {showSkip && ' Last column: the plan ends in skipping.'}
       </figcaption>
       <SrTable
         caption="Probability of going at each hour"

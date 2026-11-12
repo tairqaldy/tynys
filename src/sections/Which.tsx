@@ -44,7 +44,7 @@ export function Which(p: Props) {
 
   return (
     <section className="q" aria-labelledby="q-which" id="which">
-      <QuestionHead n={3} id="q-which" kicker="A* search · exposure-weighted street graph" title="Which way should I walk?" />
+      <QuestionHead n={3} id="q-which" kicker="A* search" title="Which way should I walk?" />
 
       <div className="route-form">
         <PlaceField
@@ -136,11 +136,7 @@ export function Which(p: Props) {
             {routeSentence(route, p.verb)}
           </p>
           <p className="answer-sub">
-            Scored for {route.at_clamped ? 'now' : p.atText}, when the model expects about <span className="num">{num(route.pm25_at, 1)}</span> µg/m³
-            PM2.5 in the city.
-            {route.comparison.same_route
-              ? ' One line on the map.'
-              : ' On the map: the solid line has the least traffic exposure, the dotted one is shortest.'}
+            Scored for {route.at_clamped ? 'now' : p.atText} · about <span className="num">{num(route.pm25_at, 1)}</span> µg/m³ expected
           </p>
 
           <div className={`route-cards${route.comparison.same_route ? ' is-single' : ''}`}>
@@ -148,18 +144,13 @@ export function Which(p: Props) {
             {!route.comparison.same_route && <RouteCard kind="shortest" r={route.shortest} kinds={p.kinds} highlight={false} />}
           </div>
           <p className="fineprint">
-            <sup>*</sup> Exposure score = expected PM2.5 × mean exposure index × breathing rate (
-            <span className="num">{num(route.ventilation_m3h, 1)}</span> m³/h) × hours. It has units of µg but is only for
-            comparing the two routes — not a measured dose.
+            <sup>*</sup> PM2.5 × mean exposure index × breathing rate (<span className="num">{num(route.ventilation_m3h, 1)}</span>{' '}
+            m³/h) × hours. Only for comparing the two routes, not a dose.
           </p>
           <ReplayControls route={route} shown={p.shown} replaying={p.replaying} onReplay={p.onReplay} onClear={p.onClear} />
           <p className="fineprint">
-            Snapped to the street graph: start {km(route.from.snap_m)}, destination {km(route.to.snap_m)} away from the
-            points you picked.{' '}
-            <Assumption>
-              The exposure index per street kind (major road ×2.0 … park path ×0.6, paths within 25 m of a busy road count
-              as roadside) is a proxy for traffic pollution next to the road, not measured.
-            </Assumption>
+            Snapped to streets {km(route.from.snap_m)} and {km(route.to.snap_m)} from your points.{' '}
+            <Assumption>Street index major road ×2.0 … park path ×0.6 is a traffic proxy, not a measurement.</Assumption>
           </p>
         </div>
       )}
@@ -209,18 +200,24 @@ function ReplayControls({
           </span>
         )}
       </div>
-      <p className="replay__note">
-        A* expanded <span className="num">{fmt(c.expanded)}</span> nodes to find the lower-exposure route; Dijkstra, the
-        same search without the heuristic, needed <span className="num">{fmt(c.expanded_dijkstra)}</span> for the same
-        answer{saved > 0 ? <> — A* saved <span className="num">{Math.round(saved * 100)}%</span></> : null}.
-        {sampled && (
-          <>
-            {' '}
-            The map draws <span className="num">{fmt(N)}</span> of them, sampled evenly in the order they were expanded; the
-            darker dots are the most recent ones, the search frontier.
-          </>
+      <div className="replay__stats">
+        <span>
+          <b className="num">{fmt(c.expanded)}</b> A* nodes
+        </span>
+        <span>
+          <b className="num">{fmt(c.expanded_dijkstra)}</b> Dijkstra
+        </span>
+        {saved > 0 && (
+          <span>
+            <b className="num">−{Math.round(saved * 100)}%</b> work, same route
+          </span>
         )}
-      </p>
+      </div>
+      {sampled && (
+        <p className="replay__note">
+          The map replays <span className="num">{fmt(N)}</span> of them in expansion order; darker dots are the frontier.
+        </p>
+      )}
     </div>
   );
 }
