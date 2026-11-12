@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { api } from '../api/client';
 import type { ActivityId, CityId } from '../api/types';
 import { ClassPatterns } from '../components/common';
 import { Header } from '../components/Header';
+import { CLASS_IDS } from '../lib/classes';
 import { useDebounced, useRequest } from '../lib/hooks';
 import { useInView } from '../lib/motion';
 import type { Navigate } from '../lib/route';
@@ -50,11 +51,17 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
 
   useEffect(() => {
     document.title = 'How Tynys works — HMM, MDP and A* on live air data';
-    delete document.documentElement.dataset.air;
   }, []);
 
   const airReq = useRequest(`docs|${city}`, (s) => api.air(city, 0.8, s));
   const air = airReq.data && airReq.data.city === city ? airReq.data : null;
+  // the page takes the colour of the air now, as the planner does
+  const airClass = air ? CLASS_IDS[air.hmm.state_now] : null;
+  useLayoutEffect(() => {
+    const el = document.documentElement;
+    if (airClass) el.dataset.air = airClass;
+    else delete el.dataset.air;
+  }, [airClass]);
 
   const [params, setParamsState] = useState<DocPlanParams>({ activity: 'walk', waitCost: 0.3, deadline: 8 });
   const setParams = (p: Partial<DocPlanParams>) => setParamsState((old) => ({ ...old, ...p }));

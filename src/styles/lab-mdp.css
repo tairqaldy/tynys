@@ -1,0 +1,649 @@
+/* MDP lab on /docs: the policy grid filled backwards, one Bellman backup, the decision now.
+   Scoped under .ml-*; the lab body is a size container so the layout follows its column. */
+
+.ml-body {
+  container: ml / inline-size;
+  display: grid;
+  gap: 20px;
+}
+
+.ml-sw {
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--cf);
+  color: var(--co);
+  font: 650 11px/1 var(--font-sans);
+  overflow: hidden;
+}
+.ml-sw svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ml-sw > span {
+  position: relative;
+}
+
+.ml-k,
+.ml-card__k {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------------- controls */
+.ml-controls {
+  display: grid;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.ml-controls .chips__row {
+  gap: 6px;
+}
+.ml-controls .chip__face {
+  min-height: 40px;
+  padding: 4px 13px;
+}
+.ml-sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 28px;
+}
+@container ml (max-width: 480px) {
+  .ml-sliders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ml-controls .chip__face {
+    padding: 4px 9px;
+  }
+}
+
+.ml-out {
+  display: grid;
+  gap: 22px;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.ml-out.is-stale {
+  opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------- policy grid */
+.ml-grid {
+  min-width: 0;
+}
+.ml-grid__table {
+  position: relative;
+}
+.ml-row {
+  display: grid;
+  grid-template-columns: var(--lw) repeat(var(--n), var(--cw));
+  align-items: stretch;
+}
+.ml-row--head {
+  align-items: end;
+}
+.ml-corner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 0 6px;
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  line-height: 1.25;
+}
+.ml-corner__t {
+  font-size: 0.85rem;
+}
+.ml-colh {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 6px;
+  line-height: 1.25;
+  min-width: 0;
+}
+.ml-colh__t {
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  transition: color var(--dur-1) var(--ease-out);
+}
+.ml-colh__c {
+  font-size: 0.66rem;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.ml-colh.is-now .ml-colh__c,
+.ml-colh.is-sel .ml-colh__c {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ml-colh.is-cursor .ml-colh__t {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ml-rowh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.ml-rowh__name {
+  white-space: nowrap;
+}
+
+.ml-cell {
+  position: relative;
+  padding: 2px;
+  min-width: 0;
+  outline: none;
+  cursor: pointer;
+}
+.ml-cell__box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 46px;
+  border-radius: 5px;
+  color: var(--ink);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out);
+}
+.ml-grid.is-narrow .ml-cell__box,
+.ml-cell__box:not(:has(.ml-cell__v)) {
+  height: 34px;
+}
+.ml-cell__v {
+  font-size: 0.64rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+/* go: the accent; wait: neutral hatch; skip: muted outline */
+.ml-cell--go .ml-cell__box {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.ml-cell--wait .ml-cell__box {
+  background:
+    repeating-linear-gradient(135deg, var(--wash-2) 0 2px, transparent 2px 6px),
+    var(--wash);
+  color: var(--ink-2);
+}
+.ml-cell--skip .ml-cell__box {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
+  color: var(--ink-3);
+}
+.ml-cell:hover .ml-cell__box {
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+/* V_{t+1}: the column the selected backup reads from */
+.ml-cell.is-feeds .ml-cell__box {
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+.ml-cell.is-sel .ml-cell__box {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.ml-cell:focus-visible .ml-cell__box {
+  box-shadow:
+    inset 0 0 0 2px var(--ink),
+    0 0 0 2px var(--raised),
+    0 0 0 4px var(--ink);
+}
+/* most likely class now */
+.ml-cell.is-now .ml-cell__box::before,
+.ml-legend__now {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.ml-cell.is-now .ml-cell__box::before {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+/* backward sweep */
+.ml-cell.is-pending .ml-cell__box {
+  background: var(--wash);
+  box-shadow: none;
+}
+.ml-cell.is-pending .ml-cell__box > *,
+.ml-cell.is-pending .ml-cell__box::before {
+  visibility: hidden;
+}
+.ml-cell.is-computing .ml-cell__box {
+  animation: ml-in 240ms var(--ease-out) both;
+}
+@keyframes ml-in {
+  from {
+    opacity: 0.15;
+    transform: scale(0.86);
+  }
+}
+.ml-cursor-layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lw);
+  width: calc(var(--n) * var(--cw));
+  pointer-events: none;
+}
+.ml-cursor {
+  position: absolute;
+  top: -4px;
+  bottom: -2px;
+  left: 0;
+  width: var(--cw);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: inset 0 2px 0 var(--ink);
+  opacity: 0;
+  transition:
+    transform 160ms var(--ease-out),
+    opacity var(--dur-2) var(--ease-out);
+}
+.ml-cursor.is-on {
+  opacity: 1;
+}
+
+.ml-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 10px;
+  padding-left: var(--lw);
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+.ml-grid.is-narrow .ml-legend {
+  padding-left: 0;
+}
+.ml-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ml-legend .glyph {
+  color: var(--ink);
+}
+.ml-legend__now {
+  display: inline-block;
+}
+.ml-legend__v {
+  color: var(--ink-3);
+}
+.ml-legend__play {
+  gap: 8px !important;
+  color: var(--ink);
+}
+.ml-legend__play .f {
+  font-size: 0.92rem;
+}
+
+/* ---------------------------------------------------------------- Bellman backup card */
+.ml-card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.ml-card.is-pending {
+  opacity: 0.4;
+}
+.ml-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.ml-card__cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.ml-card__cell .f {
+  font-weight: 400;
+  color: var(--ink-2);
+  margin-left: 2px;
+}
+.ml-card__v {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.ml-card__v strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ml-card__a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding: 2px 9px 2px 7px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--raised);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+.ml-q {
+  display: grid;
+  grid-template-columns: 5.6em minmax(0, 1fr) 3.4em;
+  align-items: start;
+  gap: 12px;
+  padding: 11px 14px;
+}
+.ml-q + .ml-q {
+  border-top: 1px solid var(--rule);
+}
+.ml-q__a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  color: var(--ink-2);
+}
+.ml-q__a .f {
+  font-size: 0.95rem;
+}
+.ml-q__body {
+  min-width: 0;
+}
+.ml-q__v {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.ml-q.is-best {
+  background: var(--wash);
+}
+.ml-q.is-best .ml-q__a,
+.ml-q.is-best .ml-q__v {
+  color: var(--ink);
+  font-weight: 700;
+}
+.ml-q.is-off .ml-q__a,
+.ml-q.is-off .ml-q__v {
+  color: var(--ink-3);
+}
+.ml-expr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2px 7px;
+  min-height: 22px;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+.ml-expr--line {
+  align-items: center;
+}
+.ml-expr .f {
+  font-size: 0.92rem;
+}
+.ml-op {
+  color: var(--ink-3);
+  line-height: 22px;
+}
+.ml-expr__tail {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.ml-muted {
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+.ml-term {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 22px;
+}
+.ml-term__k {
+  margin-top: -3px;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.ml-terms {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.ml-terms th,
+.ml-terms td {
+  padding: 0;
+  height: 24px;
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+}
+.ml-terms thead th {
+  height: 22px;
+  padding: 0 0 2px;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  vertical-align: bottom;
+}
+.ml-terms thead th.f {
+  font-size: 0.82rem;
+}
+.ml-terms tbody th,
+.ml-terms thead th:first-child {
+  width: 30px;
+  text-align: left;
+}
+.ml-terms tbody th .ml-sw {
+  vertical-align: middle;
+}
+.ml-terms td {
+  min-width: 3.4em;
+  color: var(--ink-2);
+}
+.ml-terms__op {
+  min-width: 0 !important;
+  padding: 0 8px !important;
+  text-align: center !important;
+  color: var(--ink-3) !important;
+}
+.ml-terms .ml-terms__p {
+  min-width: 4em;
+  color: var(--ink);
+  font-weight: 600;
+}
+.ml-terms tr.is-zero td {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.ml-terms tfoot th,
+.ml-terms tfoot td {
+  height: 26px;
+  border-top: 1px solid var(--rule-strong);
+}
+.ml-terms__sum {
+  padding-right: 8px !important;
+  text-align: right !important;
+  color: var(--ink-3);
+}
+
+@container ml (max-width: 500px) {
+  .ml-expr {
+    column-gap: 4px;
+  }
+  .ml-term__k {
+    font-size: 0.56rem;
+  }
+  .ml-card__v {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+  .ml-q {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 6px;
+  }
+  .ml-q__body {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* ---------------------------------------------------------------- decision now */
+.ml-dec {
+  display: grid;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+.ml-dec__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.ml-dec__f {
+  font-size: 0.95rem;
+  color: var(--ink-2);
+}
+.ml-dec__b {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+.ml-dec__b > .f {
+  font-size: 0.95rem;
+  color: var(--ink-3);
+}
+.ml-dec__bi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ml-dec__bars {
+  display: grid;
+  gap: 4px;
+}
+.ml-dec__row {
+  display: grid;
+  grid-template-columns: 4.8em minmax(0, 1fr) 3.4em;
+  align-items: center;
+  gap: 12px;
+  height: 30px;
+}
+.ml-dec__a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.ml-dec__track {
+  position: relative;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--wash);
+}
+.ml-dec__bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--rule-strong);
+}
+.ml-dec__zero {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: var(--zero);
+  border-left: 1px solid var(--ink-3);
+}
+.ml-dec__v {
+  text-align: right;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.ml-dec__row.is-best .ml-dec__bar {
+  background: var(--ink);
+}
+.ml-dec__row.is-best .ml-dec__a,
+.ml-dec__row.is-best .ml-dec__v {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- readout */
+.ml-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.ml-readout strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+.ml-readout .num {
+  color: var(--ink);
+}
+.ml-readout.is-stale {
+  opacity: 0.5;
+}
+.ml-readout__soft {
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------------- loading */
+.ml-skel {
+  display: grid;
+  gap: 4px;
+}
+.ml-skel__row {
+  display: grid;
+  grid-template-columns: 104px repeat(var(--n), minmax(0, 1fr));
+  gap: 4px;
+}
+.ml-skel__row span {
+  height: 40px;
+  border-radius: 5px;
+  background: var(--wash);
+}
+.ml-skel__row span:first-child {
+  background: none;
+}
