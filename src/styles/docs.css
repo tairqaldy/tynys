@@ -502,7 +502,7 @@
   color: var(--ink-2);
 }
 .algo__why {
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);
   padding-left: 14px;
   border-left: 2px solid var(--ink);
   font-size: var(--fs-sm);
@@ -517,6 +517,27 @@
 }
 .algo__lab {
   min-width: 0;
+}
+.algo--wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+.algo--wide .algo__text {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+.algo--wide .algo__steps {
+  margin-top: 0;
+}
+@media (max-width: 1000px) {
+  .algo--wide .algo__text {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .algo--wide .algo__steps {
+    margin-top: var(--space-5);
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .algo .algo__text,

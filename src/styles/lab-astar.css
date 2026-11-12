@@ -1,0 +1,293 @@
+/* A* lab on /docs: two grid panels (A* and Dijkstra) over the same toy city. Prefix al-. */
+
+.al .lab__body {
+  padding-bottom: 14px;
+}
+
+/* ---------------------------------------------------------------- controls */
+.al-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.al-def {
+  margin-top: 10px;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  min-height: 1.5em;
+}
+.al-def .f {
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  white-space: normal;
+}
+.al-ico {
+  width: 14px;
+  height: 14px;
+  margin-left: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------- panels */
+.al-measure {
+  margin-top: 14px;
+}
+.al-panels {
+  display: grid;
+  gap: 22px;
+}
+.al-panels--side {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 16px;
+}
+.al-panel {
+  min-width: 0;
+}
+.al-panel__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+.al-panel__name {
+  flex: none;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.al-panel__h {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+}
+
+.al-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px var(--rule);
+  background: var(--raised);
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.al-canvas[style*='height'] {
+  aspect-ratio: auto;
+}
+.al-canvas.has-brush {
+  cursor: crosshair;
+  touch-action: none;
+}
+.al-canvas[data-grab='true'] {
+  cursor: grab;
+}
+.al-canvas[data-drag='true'] {
+  cursor: grabbing;
+}
+.al-canvas:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+/* counters under each canvas: the expanded count leads, cost and length must match across panels */
+.al-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.al-stat {
+  min-width: 0;
+}
+.al-stat dt {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+.al-stat dd {
+  margin: 2px 0 0;
+  font-size: var(--fs-md);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  transition: color var(--dur-2) var(--ease-out);
+}
+.al-stat dd.is-on {
+  color: var(--ink);
+}
+.al-stat--main dd {
+  margin-top: 0;
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+}
+.al-meter {
+  margin-top: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--wash-2);
+  overflow: hidden;
+}
+.al-meter span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--ink);
+  transform-origin: left center;
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.al-panel--dijkstra .al-meter span {
+  background: var(--k-1);
+}
+.al-meter span.is-live {
+  transition: none;
+}
+
+/* ---------------------------------------------------------------- brushes and legend */
+.al-tools {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+.al-brushes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+/* a selected brush is quieter than a selected mode: it is a tool, not a setting */
+.al-brushes .lab-btn[aria-pressed='true'] {
+  background: var(--wash-2);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.al-brushes .lab-btn[aria-pressed='true'] .al-x {
+  color: var(--ink-2);
+}
+.al-tools__k {
+  margin-right: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.al-x {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
+}
+.al-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+.al-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* swatches: the same fills the canvas paints */
+.al-sw {
+  flex: none;
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+}
+.al-sw--building {
+  background: color-mix(in srgb, var(--ink) 10%, var(--raised));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 20%, var(--raised));
+}
+.al-sw--park {
+  background:
+    radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--k-2) 42%, var(--raised)) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 72% 62%, color-mix(in srgb, var(--k-2) 42%, var(--raised)) 0 1.5px, transparent 2px),
+    color-mix(in srgb, var(--ink) 3.5%, var(--raised));
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.al-sw--major {
+  background:
+    linear-gradient(var(--raised), var(--raised)) center / 7px 1.5px no-repeat,
+    color-mix(in srgb, var(--k-4) 30%, var(--raised));
+}
+/* a scrap of the grid itself */
+.al-sw--street {
+  background:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), var(--rule-strong) 0 calc(50% + 0.5px), transparent 0),
+    linear-gradient(transparent calc(50% - 0.5px), var(--rule-strong) 0 calc(50% + 0.5px), transparent 0),
+    var(--raised);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.al-sw--footpath {
+  background:
+    linear-gradient(90deg, var(--k-2) 55%, transparent 0) center / 4px 1.5px repeat-x,
+    var(--raised);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+/* expanded: the order ramp, early to recent; frontier: the darkest edge */
+.al-sw--closed {
+  width: 22px;
+  height: 7px;
+  background:
+    linear-gradient(90deg, var(--raised) 0 1px, transparent 0 7px, var(--raised) 0 8px, transparent 0 14px, var(--raised) 0 15px, transparent 0 21px, var(--raised) 0),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 42%, transparent));
+  border-radius: 2px;
+}
+.al-sw--frontier {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1.25px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+
+/* ---------------------------------------------------------------- readout */
+.al-readout {
+  display: block;
+  min-height: 1.45em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 420px) {
+  /* the grid size is a detail; on a phone the title needs the room */
+  .al .lab__tag {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .al .lab__body {
+    padding: 14px 12px 12px;
+  }
+  .al-controls {
+    gap: 8px;
+  }
+  .al-tools {
+    gap: 12px;
+  }
+}

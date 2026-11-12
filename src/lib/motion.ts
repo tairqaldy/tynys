@@ -23,7 +23,7 @@ export function useTween(target: number, ms = 600, initial?: number): number {
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
-      const k = Math.min(1, (now - start) / ms);
+      const k = Math.max(0, Math.min(1, (now - start) / ms));
       const x = from.current + (target - from.current) * easeOut(k);
       cur.current = x;
       setV(x);
@@ -52,7 +52,7 @@ export function useTweenVec(target: readonly number[], ms = 600, initial?: reado
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
-      const k = easeOut(Math.min(1, (now - start) / ms));
+      const k = easeOut(Math.max(0, Math.min(1, (now - start) / ms)));
       const x = to.map((t, i) => from[i] + (t - from[i]) * k);
       cur.current = x;
       setV(x);

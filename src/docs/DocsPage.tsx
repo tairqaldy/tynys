@@ -172,6 +172,7 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
             { k: 'Heuristic', v: <><span className="f">h = 0.6 × straight-line distance</span>, never too high</> },
           ]}
           io={['two points · street graph · PM2.5 at the planned hour', 'shortest route and lower-exposure route']}
+          wide
         >
           <AstarLab />
         </DocSection>
@@ -274,6 +275,7 @@ function DocSection({
   why,
   steps,
   io,
+  wide = false,
   children,
 }: {
   id: string;
@@ -284,12 +286,15 @@ function DocSection({
   why: string;
   steps: { k: string; v: ReactNode }[];
   io: [string, string];
+  /** lab below the text at full page width instead of beside it */
+  wide?: boolean;
   children: ReactNode;
 }) {
   const [ref, seen] = useInView<HTMLElement>();
   return (
-    <section ref={ref} className={`algo${seen ? ' is-in' : ''}`} id={id} aria-labelledby={`${id}-h`}>
+    <section ref={ref} className={`algo${wide ? ' algo--wide' : ''}${seen ? ' is-in' : ''}`} id={id} aria-labelledby={`${id}-h`}>
       <div className="algo__text">
+        <div className="algo__head">
         <p className="algo__topic">
           <span className="algo__n">{n}</span> {topic}
         </p>
@@ -297,6 +302,11 @@ function DocSection({
           {title}
         </h2>
         <p className="algo__q">{question}</p>
+        <p className="algo__why">
+          <span className="algo__why-k">Why this algorithm</span> {why}
+        </p>
+        </div>
+        <div className="algo__detail">
         <dl className="algo__steps">
           {steps.map((s) => (
             <div key={s.k}>
@@ -313,9 +323,7 @@ function DocSection({
             <span className="algo__io-k">out</span> {io[1]}
           </p>
         </div>
-        <p className="algo__why">
-          <span className="algo__why-k">Why this algorithm</span> {why}
-        </p>
+        </div>
       </div>
       <div className="algo__lab">{children}</div>
     </section>
