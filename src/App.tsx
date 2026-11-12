@@ -369,7 +369,7 @@ export default function App({ navigate }: { navigate: Navigate }) {
               )}
             </section>
           )}
-          <MathSection air={air} plan={plan} route={route} kinds={meta?.kinds ?? []} />
+          <MathSection air={air} plan={plan} route={route} kinds={meta?.kinds ?? []} navigate={navigate} />
           <About meta={meta} city={cityMeta} navigate={navigate} />
         </main>
         {!narrow && (

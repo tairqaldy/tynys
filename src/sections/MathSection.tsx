@@ -4,12 +4,14 @@ import { QuestionHead, Skeleton } from '../components/common';
 import { MathAstar } from '../math/MathAstar';
 import { MathHmm } from '../math/MathHmm';
 import { MathMdp } from '../math/MathMdp';
+import type { Navigate } from '../lib/route';
 
 interface Props {
   air: AirResponse | null;
   plan: PlanResponse | null;
   route: RouteResponse | null;
   kinds: KindMeta[];
+  navigate: Navigate;
 }
 
 function Panel({ n, title, sub, children }: { n: string; title: string; sub: string; children: ReactNode }) {
@@ -30,13 +32,23 @@ function Panel({ n, title, sub, children }: { n: string; title: string; sub: str
   );
 }
 
-export function MathSection({ air, plan, route, kinds }: Props) {
+export function MathSection({ air, plan, route, kinds, navigate }: Props) {
   return (
     <section className="q q--math" aria-labelledby="q-math" id="math">
       <QuestionHead n="∑" id="q-math" kicker="Inputs → steps → output" title="Show the math" />
       <p className="lede">
-        The numbers below are the ones behind the answers above, straight from the server's response. Open a panel to
-        follow one algorithm from its inputs to its output.
+        The live numbers behind the answers above, input to output. To play with each algorithm, open{' '}
+        <a
+          href="/docs"
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+            e.preventDefault();
+            navigate('docs');
+          }}
+        >
+          How it works
+        </a>
+        .
       </p>
       <Panel n="1" title="Hidden Markov model" sub="Belief about the air now: transition and emission matrices, one Bayes step, Viterbi">
         {air ? <MathHmm air={air} /> : <Skeleton lines={4} />}

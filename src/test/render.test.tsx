@@ -78,7 +78,7 @@ describe.each([640, 343])('sections at %ipx', (w) => {
           />,
         );
         clean(html);
-        const m = renderToStaticMarkup(<MathSection air={air} plan={plan} route={route} kinds={meta.kinds} />);
+        const m = renderToStaticMarkup(<MathSection air={air} plan={plan} route={route} kinds={meta.kinds} navigate={() => {}} />);
         clean(m);
         if (plan.inputs.must) expect(html).not.toContain('>skip<');
       });
