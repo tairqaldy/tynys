@@ -97,11 +97,11 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
         <header className="dhero" id="overview">
           <p className="eyebrow">How it works</p>
           <h1 className="dhero__title">
-            Three algorithms, <em>one</em> decision about the air you breathe.
+            How Tynys reads the air, picks the hour and finds a <em>quieter</em> street.
           </h1>
           <p className="dhero__lede">
-            A hidden Markov model reads the air, a Markov decision process picks the hour, A* picks the streets. Each hands its
-            answer to the next.
+            Three course algorithms, written by hand in Python and run on live data for Astana and Almaty. Each hands its
+            answer to the next, and each has a lab below that you can play with.
           </p>
           <Flow air={air} plan={plan} />
           <dl className="facts-row">

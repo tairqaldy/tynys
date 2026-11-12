@@ -15,14 +15,20 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const PORT = 9333;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// name, query, viewport, colour scheme, optional script to run before the capture
+// name, path + query, viewport, colour scheme; optional: scroll to a heading (scrollTo) or an element id
+// (scrollId), open the first <details> (openMath), run a script before the capture (before).
 const SHOTS = [
-  { name: 'overview', query: '?city=almaty', w: 1440, h: 900, scheme: 'light' },
-  { name: 'overview-dark', query: '?city=astana', w: 1440, h: 900, scheme: 'dark' },
-  { name: 'when', query: '?city=almaty&activity=kids', w: 1440, h: 900, scheme: 'light', scrollTo: 'When should I go out?', offset: 420 },
-  { name: 'route', query: '?city=almaty', w: 1440, h: 900, scheme: 'light', scrollTo: 'Which way should I walk?', offset: 330 },
-  { name: 'math', query: '?city=almaty', w: 1440, h: 900, scheme: 'light', openMath: true, scrollTo: 'Show the math', offset: 560 },
-  { name: 'phone', query: '?city=almaty', w: 390, h: 844, scheme: 'light', mobile: true },
+  { name: 'overview', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light' },
+  { name: 'overview-dark', query: '/?city=astana', w: 1440, h: 900, scheme: 'dark' },
+  { name: 'when', query: '/?city=almaty&activity=kids', w: 1440, h: 900, scheme: 'light', scrollTo: 'When should I go out?', offset: 0 },
+  { name: 'route', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', scrollTo: 'Which way should I walk?', offset: 330 },
+  { name: 'math', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', openMath: true, scrollTo: 'Hidden Markov model', offset: -40 },
+  { name: 'phone', query: '/?city=almaty', w: 390, h: 844, scheme: 'light', mobile: true },
+  { name: 'docs', query: '/docs', w: 1440, h: 900, scheme: 'light' },
+  { name: 'docs-hmm', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'hmm', before: "document.querySelector('#hmm [data-shot=reading]')?.click()" },
+  { name: 'docs-mdp', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'mdp', before: "document.querySelector('#mdp [data-shot=play]')?.click()" },
+  { name: 'docs-astar', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'astar' },
+  { name: 'docs-dark', query: '/docs', w: 1440, h: 900, scheme: 'dark', scrollId: 'results' },
 ];
 
 const profile = mkdtempSync(join(tmpdir(), 'tynys-shots-'));
@@ -68,14 +74,22 @@ try {
       { name: 'prefers-reduced-motion', value: 'reduce' },
     ] });
     await send('Page.navigate', { url: 'about:blank' });
-    await send('Page.navigate', { url: BASE + '/' + s.query });
+    await send('Page.navigate', { url: BASE + s.query });
     await sleep(1500);
     await run('try { localStorage.clear() } catch (e) {}');   // ignore a remembered theme or city
-    await send('Page.navigate', { url: BASE + '/' + s.query });
+    await send('Page.navigate', { url: BASE + s.query });
     await sleep(9000);                                         // API calls, style, tiles, example route
     if (s.openMath) {
       await run(`document.querySelector('details') && (document.querySelector('details').open = true)`);
       await sleep(500);
+    }
+    if (s.scrollId) {
+      await run(`document.getElementById(${JSON.stringify(s.scrollId)})?.scrollIntoView({ behavior: 'instant' })`);
+      await sleep(2500);
+    }
+    if (s.before) {
+      await run(s.before);
+      await sleep(2500);
     }
     if (s.scrollTo) {
       await run(`(() => { const h = [...document.querySelectorAll('h2,h3')].find((x) => x.innerText.trim().startsWith(${JSON.stringify(s.scrollTo)}));

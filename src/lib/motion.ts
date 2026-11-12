@@ -3,12 +3,16 @@ import { useReducedMotion } from './hooks';
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
-/** A number that glides to its new value (ease-out). Jumps straight there with reduced motion. */
-export function useTween(target: number, ms = 600): number {
+/**
+ * A number that glides to its new value (ease-out). Jumps straight there with reduced motion.
+ * `initial` sets where the first glide starts (for a count-up on mount); default: no first glide.
+ */
+export function useTween(target: number, ms = 600, initial?: number): number {
   const reduced = useReducedMotion();
-  const [v, setV] = useState(target);
-  const from = useRef(target);
-  const cur = useRef(target);
+  const start0 = initial ?? target;
+  const [v, setV] = useState(start0);
+  const from = useRef(start0);
+  const cur = useRef(start0);
   useEffect(() => {
     if (reduced || !Number.isFinite(target)) {
       cur.current = target;
@@ -31,12 +35,12 @@ export function useTween(target: number, ms = 600): number {
   return v;
 }
 
-/** Tween every entry of a vector together. */
-export function useTweenVec(target: readonly number[], ms = 600): number[] {
+/** Tween every entry of a vector together; `initial` as in useTween. */
+export function useTweenVec(target: readonly number[], ms = 600, initial?: readonly number[]): number[] {
   const reduced = useReducedMotion();
   const key = target.join(',');
-  const [v, setV] = useState<number[]>(() => [...target]);
-  const cur = useRef<number[]>([...target]);
+  const [v, setV] = useState<number[]>(() => [...(initial ?? target)]);
+  const cur = useRef<number[]>([...(initial ?? target)]);
   useEffect(() => {
     const to = key.split(',').map(Number);
     if (reduced) {

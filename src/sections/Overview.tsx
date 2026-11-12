@@ -109,8 +109,8 @@ function Answer({ n, href, algo, k, v, sub, c }: { n: number; href: string; algo
  */
 function AirOrb({ pm, belief, k }: { pm: number; belief: readonly number[]; k: number }) {
   const reduced = useReducedMotion();
-  const pmT = useTween(pm, 900);
-  const b = useTweenVec(belief, 900);
+  const pmT = useTween(pm, 1100, 0);
+  const b = useTweenVec(belief, 1300, [0, 0, 0, 0]);
   const R = 92;
   const C = 2 * Math.PI * R;
   const gap = 3;
@@ -196,8 +196,8 @@ function Ribbon({ air }: { air: AirResponse }) {
       </div>
       <div className="ribbon__ticks" aria-hidden="true">
         {cells.map((x, i) =>
-          hourOf(x.t) % 6 === 0 ? (
-            <span key={x.t} style={{ left: `${((i + 0.5) / cells.length) * 100}%` }}>
+          hourOf(x.t) % 6 === 0 && i > 1 && i < cells.length - 2 ? (
+            <span key={x.t} className={hourOf(x.t) % 12 === 0 ? undefined : 'is-minor'} style={{ left: `${((i + 0.5) / cells.length) * 100}%` }}>
               {hhmm(x.t)}
             </span>
           ) : null,

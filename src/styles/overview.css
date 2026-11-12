@@ -2,6 +2,7 @@
 
 .overview {
   padding-top: var(--space-6);
+  container-type: inline-size;
 }
 
 .ov-head {
@@ -207,8 +208,8 @@
   font-size: 0.64rem;
   color: var(--ink-3);
 }
-@media (max-width: 560px) {
-  .ribbon__ticks span:nth-child(even) {
+@container (max-width: 600px) {
+  .ribbon__ticks span.is-minor {
     display: none;
   }
 }
@@ -561,5 +562,28 @@
   from {
     opacity: 0;
     transform: translateY(18px);
+  }
+}
+
+/* a narrow column (small laptop, phone): smaller gauge, tighter sentence */
+@container (max-width: 560px) {
+  .ov-head {
+    grid-template-columns: 136px minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+  .ov-sentence {
+    font-size: 1.4rem;
+  }
+  .ov-sub {
+    font-size: var(--fs-xs);
+  }
+  .orb__pm {
+    font-size: 1.5rem;
+  }
+  .orb__unit {
+    font-size: 0.58rem;
+  }
+  .answer-tile__v {
+    font-size: 1.08rem;
   }
 }
