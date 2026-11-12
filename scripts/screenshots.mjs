@@ -25,8 +25,8 @@ const SHOTS = [
   { name: 'math', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', openMath: true, scrollTo: 'Hidden Markov model', offset: -40 },
   { name: 'phone', query: '/?city=almaty', w: 390, h: 844, scheme: 'light', mobile: true },
   { name: 'docs', query: '/docs', w: 1440, h: 900, scheme: 'light' },
-  { name: 'docs-hmm', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'hmm', before: "document.querySelector('#hmm [data-shot=reading]')?.click()" },
-  { name: 'docs-mdp', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'mdp', before: "document.querySelector('#mdp [data-shot=play]')?.click()" },
+  { name: 'docs-hmm', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'hmm', before: "document.querySelectorAll('#hmm .hl-feed__btn')[2]?.click()" },
+  { name: 'docs-mdp', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'mdp', before: "document.querySelector('#mdp .lab-btn--solid')?.click()" },
   { name: 'docs-astar', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'astar' },
   { name: 'docs-dark', query: '/docs', w: 1440, h: 900, scheme: 'dark', scrollId: 'results' },
 ];
