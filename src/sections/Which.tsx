@@ -209,7 +209,7 @@ function ReplayControls({
         </span>
         {saved > 0 && (
           <span>
-            <b className="num">−{Math.round(saved * 100)}%</b> work, same route
+            <b className="num">−{Math.round(saved * 100)}%</b> work, same answer
           </span>
         )}
       </div>

@@ -464,6 +464,18 @@
   border-radius: 3px;
   background: var(--k-1);
 }
+.qbar__mark {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--ink-3);
+}
+.qbar.is-win .qbar__mark {
+  background: var(--ink);
+}
 .qbar.is-win {
   color: var(--ink);
   font-weight: 600;

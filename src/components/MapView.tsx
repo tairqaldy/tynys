@@ -67,6 +67,22 @@ function bboxRing(b: BBox): Position[] {
   ];
 }
 
+/** The first share `e` (0..1) of a polyline, measured along its length, ending on an interpolated point. */
+function partialLine(coords: LatLon[], e: number): LatLon[] {
+  const cum = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const [a, b] = [coords[i - 1], coords[i]];
+    cum.push(cum[i - 1] + Math.hypot(b[0] - a[0], (b[1] - a[1]) * Math.cos((a[0] * Math.PI) / 180)));
+  }
+  const target = e * cum[cum.length - 1];
+  let j = 1;
+  while (j < coords.length - 1 && cum[j] < target) j++;
+  const seg = cum[j] - cum[j - 1] || 1;
+  const t = Math.min(1, Math.max(0, (target - cum[j - 1]) / seg));
+  const [a, b] = [coords[j - 1], coords[j]];
+  return [...coords.slice(0, j), [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]];
+}
+
 const line = (coords: LatLon[]): FC => ({
   type: 'FeatureCollection',
   features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords.map(([la, lo]) => [lo, la]) } }],
@@ -112,6 +128,7 @@ export function MapView(p: Props) {
   const cb = useRef(p);
   cb.current = p;
   const anim = useRef<number | null>(null);
+  const drawAnim = useRef<number | null>(null);
   const shownRef = useRef(0);
   const cityFits = useRef(0);
 
@@ -154,6 +171,7 @@ export function MapView(p: Props) {
     return () => {
       ro.disconnect();
       if (anim.current) cancelAnimationFrame(anim.current);
+      if (drawAnim.current) cancelAnimationFrame(drawAnim.current);
       markers.current.from?.remove();
       markers.current.to?.remove();
       markers.current = { from: null, to: null };
@@ -314,8 +332,26 @@ export function MapView(p: Props) {
       setData('explored', EMPTY);
       return;
     }
-    setData('clean', line(r.cleanest.coords));
-    setData('short', r.comparison.same_route ? EMPTY : line(r.shortest.coords));
+    // draw both routes in from A to B (by distance), unless motion is reduced
+    if (drawAnim.current) cancelAnimationFrame(drawAnim.current);
+    const clean = r.cleanest.coords;
+    const short = r.comparison.same_route ? null : r.shortest.coords;
+    const showAt = (e: number) => {
+      setData('clean', line(e >= 1 ? clean : partialLine(clean, e)));
+      setData('short', short ? line(e >= 1 ? short : partialLine(short, e)) : EMPTY);
+    };
+    if (cb.current.reducedMotion || clean.length < 3) showAt(1);
+    else {
+      const t0 = performance.now();
+      const D = 1200;
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / D);
+        showAt(1 - Math.pow(1 - k, 3));
+        drawAnim.current = k < 1 ? requestAnimationFrame(step) : null;
+      };
+      showAt(0.001);
+      drawAnim.current = requestAnimationFrame(step);
+    }
     setData('explored', {
       type: 'FeatureCollection',
       features: r.cleanest.explored.map(([la, lo], i) => ({ type: 'Feature', properties: { i }, geometry: { type: 'Point', coordinates: [lo, la] } })),

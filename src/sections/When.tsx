@@ -174,6 +174,7 @@ function QBars({ rows }: { rows: { label: string; v: number; win: boolean }[] })
             <span className="qbar__track">
               <span className="qbar__zero" style={{ left: `${zero}%` }} />
               <span className="qbar__fill" style={{ left: `${x0}%`, width: `${w}%` }} />
+              <span className="qbar__mark" style={{ left: `${((v - lo) / span) * 100}%` }} />
             </span>
             <span className="qbar__v num">{num(v, 2)}</span>
             {r.win && <span className="sr-only"> (best)</span>}

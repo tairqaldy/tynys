@@ -10,15 +10,20 @@ It answers three questions you have on a smoggy day, each with a different AI al
 | When should I go out? | Markov decision process solved by backward induction | Sequential decision making |
 | Which way should I walk? | A* on the real street network with an exposure-weighted cost | Search |
 
-Final project for **AIF1303 AI Fundamentals**, QAIRU, trimester 1, 2026–27 — Tair Kaldybayev.
+Final project for **AIF1303 AI Fundamentals**, QAIRU, trimester 1, 2026–27.
+Team: **Tair Kaldybayev** ([@tairqaldy](https://github.com/tairqaldy)) and **Dameli Kalikhanova** ([@dameo111](https://github.com/dameo111)).
 
-**Live: <https://tynys-blond.vercel.app>** · [defense notes](docs/DEFENSE.md) · [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
+**Live: <https://tynys-blond.vercel.app>** · **[How it works](https://tynys-blond.vercel.app/docs)** (interactive labs for the three algorithms) · [defense notes](docs/DEFENSE.md) · [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
 
 ![Tynys: the Now, When and Which way sections beside the map](docs/screenshots/overview.png)
 
-| When should I go out? | Which way should I walk? | Show the math |
+| How it works: the pipeline | Bayes filter lab | A* against Dijkstra lab |
 |---|---|---|
-| ![The decision, the go-probability chart and the policy grid](docs/screenshots/when.png) | ![Two routes compared, with the share of each street kind](docs/screenshots/route.png) | ![Transition matrices as learned from 92 days of data](docs/screenshots/math.png) |
+| ![The three algorithms as one pipeline with their live answers](docs/screenshots/docs.png) | ![Feeding one reading through predict, weigh and normalise](docs/screenshots/docs-hmm.png) | ![A* and Dijkstra expanding the same toy city side by side](docs/screenshots/docs-astar.png) |
+
+| When should I go out? | Which way should I walk? | Backward induction lab |
+|---|---|---|
+| ![The decision, the value of each action and the policy grid](docs/screenshots/when.png) | ![Two routes compared, with the share of each street kind](docs/screenshots/route.png) | ![The policy grid filling from the deadline back to now](docs/screenshots/docs-mdp.png) |
 
 ## How the three parts work together
 
@@ -54,6 +59,9 @@ python -m unittest discover tests
 
 runs 50 tests offline: the umbrella-world HMM from the textbook, a hand-solved MDP, A* on a grid with a
 wall, A* against Dijkstra on the real street graphs, and checks that every hour index in the API lines up.
+The web interface has its own tests (`pnpm test`): the API contract, every section rendered with each saved
+response, and the TypeScript re-implementations used by the labs on `/docs` checked against the Python
+results.
 
 ```bash
 python -m tynys.evaluate
@@ -62,7 +70,7 @@ python -m tynys.evaluate
 regenerates [`docs/evaluation.md`](docs/evaluation.md).
 
 The web app needs Node 22 and pnpm. In one terminal start the API, in another the interface, then open
-<http://localhost:5173>:
+<http://localhost:5173> (the planner) and <http://localhost:5173/docs> (how it works):
 
 ```bash
 python -m tynys.devserver
@@ -183,6 +191,7 @@ scripts/    build the street graphs (Overpass), the place list (Photon), the air
 data/       street graphs, places, air snapshot
 tests/      unittest, offline
 src/        web interface: Vite, React, TypeScript, MapLibre; charts are hand-built SVG
+src/docs/   the /docs page: the pipeline, the three interactive labs, evaluation charts, team
 docs/       SPEC.md, evaluation.md, demo outputs, DEFENSE.md, AI-USAGE.md
 ```
 
@@ -195,6 +204,11 @@ docs/       SPEC.md, evaluation.md, demo outputs, DEFENSE.md, AI-USAGE.md
   from it and carry the same license.
 - Place search: [Photon](https://photon.komoot.io/) by Komoot. Map tiles: [OpenFreeMap](https://openfreemap.org/).
 - Fonts: Literata, Golos Text, JetBrains Mono (SIL Open Font License).
+
+## Team
+
+Tair Kaldybayev and Dameli Kalikhanova, AI & ML, year 1. The work was done together on one laptop, so
+all commits come from one account.
 
 ## AI assistance
 

@@ -1,13 +1,28 @@
 # Defense notes
 
-Preparation for the live demonstration and the oral defense of Tynys (AIF1303 final project).
+Preparation for the live demonstration and the oral defense of Tynys (AIF1303 final project), team
+Tair Kaldybayev and Dameli Kalikhanova. The task says each team member must be able to explain the
+whole project and answer questions about every algorithm, so both of us prepare all of it; the split
+below is only who speaks first.
 The worked numbers are from the Almaty run of 10 November 2026, 12:00, saved in
 [`demo_output_almaty.txt`](demo_output_almaty.txt). On the day, the numbers on screen will be different;
 the structure is the same.
 
+## Who presents what
+
+| Part | Leads | Backs up |
+|---|---|---|
+| Pitch and the planner screen | Tair | Dameli |
+| HMM: the Bayes filter lab, one update by hand | Dameli | Tair |
+| MDP: backward induction lab, one Bellman line by hand | Tair | Dameli |
+| A*: the A* vs Dijkstra lab, why the heuristic is admissible | Dameli | Tair |
+| Results, limits, improvements | together | |
+
+Swap any row if it suits you better; what matters is that either of us can take any question.
+
 ## The pitch (about one minute)
 
-> On a smoggy day in Almaty or Astana I have three questions: how bad is the air right now, when
+> On a smoggy day in Almaty or Astana we have three questions: how bad is the air right now, when
 > should I go out, and which way should I walk. Tynys answers each with a different algorithm from the
 > course. A hidden Markov model turns noisy hourly PM2.5 values into a belief about the air class. A
 > Markov decision process uses that belief and the forecast to decide whether to go now, wait or skip.
@@ -19,9 +34,12 @@ the structure is the same.
 ## Demo script (about five minutes)
 
 Live site: <https://tynys-blond.vercel.app>. A prepared link that opens Almaty with a child selected:
-<https://tynys-blond.vercel.app/?city=almaty&activity=kids&duration=60&deadline=8&wait=0.3>
+<https://tynys-blond.vercel.app/?city=almaty&activity=kids&duration=60&deadline=8&wait=0.3>.
+The explainer with the three interactive labs: <https://tynys-blond.vercel.app/docs>.
 
-1. **Open the site, Almaty.** Read the sentence at the top. Point at the belief bars: "these four
+1. **Open the site, Almaty.** The first screen answers all three questions: the gauge shows the model
+   PM2.5 and, around it, the HMM's belief as four arcs; the strip below is the last 24 hours and the
+   next 48; the three tiles are the HMM, MDP and A* answers. Scroll to the belief bars: "these four
    numbers are the HMM's output, a probability for each class, not just one label."
 2. **The 24-hour strip.** "Top row is what the model reported each hour, bottom row is the Viterbi
    path: the most likely true sequence."
@@ -37,8 +55,16 @@ Live site: <https://tynys-blond.vercel.app>. A prepared link that opens Almaty w
    shortest." Read the comparison sentence. Press **Replay search**: "these are the nodes A* expanded,
    in order. It grows toward the goal, not in all directions."
 7. **Show the math → A\*.** Point at the two counts: A* against Dijkstra, same cost.
-8. **About.** "The values are from an atmospheric model with a 40 km grid, not street sensors. The
-   road index and the utility numbers are assumptions. It compares options; it is not medical advice."
+8. **How it works (`/docs`).** Open it from the tab at the top. Three labs run on the same live data:
+   - *Bayes filter*: press a reading (L, M, E or H) and watch the three steps: predict with the
+     time-of-day matrix, weigh by the emission column, normalise. The numbers of each step are shown.
+   - *Backward induction*: press Play; the policy fills from the deadline back to now, which is exactly
+     the order the Bellman equation needs. Click any cell to see its Q(go) and Q(wait) with the real numbers.
+   - *A\* against Dijkstra*: both searches run on the same toy city; the counters show how many nodes
+     each opened for the same cost. Paint a park or a road, drag A and B, switch "Least exposure".
+9. **Results and limits** (bottom of `/docs`). "The values are from an atmospheric model with a 40 km
+   grid, not street sensors. The road index and the utility numbers are assumptions. It compares
+   options; it is not medical advice."
 
 **If the internet fails:** run `python -m tynys.demo --city almaty --offline` in a terminal. It prints
 the same three algorithms from the bundled snapshot. If only Open-Meteo fails, the site switches to the
@@ -218,7 +244,7 @@ Dijkstra finds the same route but explores in every direction.
 3. The hour the MDP recommends selects the expected PM2.5 from the HMM's prediction, and that value
    scales the exposure score of the two A* routes.
 
-## Limits I should state before being asked
+## Limits to state before being asked
 
 - Model output, not sensors: about 40 km per grid cell, peaks are smoothed.
 - WHO has no hourly PM2.5 guideline; the cut-points 5 / 15 / 25 are borrowed from the annual and
@@ -235,7 +261,7 @@ road index.
 
 ## If asked about AI assistance
 
-Answer directly: the code and documents were written with Claude under my direction, and
+Answer directly: the code and documents were written with Claude under our direction, and
 [`AI-USAGE.md`](AI-USAGE.md) lists what it did and how the result was checked. Then show that I can
 explain any part: open `tynys/hmm.py`, `tynys/mdp.py` or `tynys/astar.py` and walk through a function.
 
@@ -243,7 +269,8 @@ explain any part: open `tynys/hmm.py`, `tynys/mdp.py` or `tynys/astar.py` and wa
 
 - [ ] Run `python -m tynys.demo --city almaty` and read the whole output once, slowly.
 - [ ] Run `python -m unittest discover tests`.
-- [ ] Read `tynys/hmm.py` (`bayes_update`, `forward`, `viterbi`), `tynys/mdp.py`
-      (`backward_induction`, `qmdp_decision`) and `tynys/astar.py` (`astar`) until I can explain every line.
+- [ ] Both of us: read `tynys/hmm.py` (`bayes_update`, `forward`, `viterbi`), `tynys/mdp.py`
+      (`backward_induction`, `qmdp_decision`) and `tynys/astar.py` (`astar`) until we can explain every line.
 - [ ] Recompute one Bayes update and one Bellman line by hand from the numbers on the screen.
-- [ ] Open the live site on the presentation computer beforehand and keep the offline demo ready.
+- [ ] Open the live site and `/docs` on the presentation computer beforehand and keep the offline demo ready.
+- [ ] Each of us runs each lab on `/docs` once and says out loud what it shows.
