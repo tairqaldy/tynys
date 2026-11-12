@@ -495,7 +495,7 @@ function ViterbiStrip({ filtered }: { filtered: FilteredHour[] }) {
               const tick = hr % every === 0 && k < n - 2;
               return (
                 <g key={f.time}>
-                  <title>{`${hhmm(f.time)} · reading ${CLASS_LABEL[f.obs]} · Viterbi ${CLASS_LABEL[f.viterbi]}`}</title>
+                  <title>{`${hhmm(f.time)} · reading ${f.obs === null ? 'missing' : CLASS_LABEL[f.obs]} · Viterbi ${CLASS_LABEL[f.viterbi]}`}</title>
                   {(
                     [
                       [0, f.obs],
@@ -503,11 +503,11 @@ function ViterbiStrip({ filtered }: { filtered: FilteredHour[] }) {
                     ] as const
                   ).map(([y, c]) => (
                     <g key={y}>
-                      <rect x={x + 0.5} y={y} width={Math.max(1, cw - 1)} height={rowH} rx={1.5} fill={classFill(c)} />
-                      <rect x={x + 0.5} y={y} width={Math.max(1, cw - 1)} height={rowH} rx={1.5} fill={classPattern(c)} />
+                      <rect x={x + 0.5} y={y} width={Math.max(1, cw - 1)} height={rowH} rx={1.5} fill={c === null ? 'var(--wash-2)' : classFill(c)} />
+                      {c !== null && <rect x={x + 0.5} y={y} width={Math.max(1, cw - 1)} height={rowH} rx={1.5} fill={classPattern(c)} />}
                       {letters && (
-                        <text x={x + cw / 2} y={y + rowH / 2 + 3.8} textAnchor="middle" className="hl-vit__l" style={{ fill: classOn(c) }}>
-                          {CLASS_LETTER[c]}
+                        <text x={x + cw / 2} y={y + rowH / 2 + 3.8} textAnchor="middle" className="hl-vit__l" style={{ fill: c === null ? 'var(--ink-3)' : classOn(c) }}>
+                          {c === null ? '–' : CLASS_LETTER[c]}
                         </text>
                       )}
                     </g>
@@ -537,7 +537,7 @@ function ViterbiStrip({ filtered }: { filtered: FilteredHour[] }) {
       <SrTable
         caption="Last 24 hours: reading class and most likely class (Viterbi)"
         head={['Time', 'Reading class', 'Most likely class (Viterbi)']}
-        rows={filtered.map((f) => [hhmm(f.time), CLASS_LABEL[f.obs], CLASS_LABEL[f.viterbi]])}
+        rows={filtered.map((f) => [hhmm(f.time), f.obs === null ? 'missing' : CLASS_LABEL[f.obs], CLASS_LABEL[f.viterbi]])}
       />
     </figure>
   );

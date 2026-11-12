@@ -77,13 +77,15 @@ export interface MetaResponse {
 
 export interface HourReading {
   time: string;
-  pm25: number;
-  band: ClassIdx;
+  /** null when the model has no value for that hour */
+  pm25: number | null;
+  band: ClassIdx | null;
 }
 
 export interface FilteredHour {
   time: string;
-  obs: ClassIdx;
+  /** null when the reading for that hour is missing (the filter only predicts) */
+  obs: ClassIdx | null;
   belief: Vec4;
   viterbi: ClassIdx;
 }

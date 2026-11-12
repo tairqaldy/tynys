@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 /**
  * Frame shared by the three interactive labs on /docs: a title bar with controls on the right,
@@ -20,13 +20,14 @@ export function Lab({
   readout?: ReactNode;
   className?: string;
 }) {
+  const id = useId();
   return (
-    <figure className={`lab ${className}`}>
+    <figure className={`lab ${className}`} aria-labelledby={id}>
       <div className="lab__bar">
-        <figcaption className="lab__title">
-          {title}
+        <p className="lab__title">
+          <span id={id}>{title}</span>
           {tag && <span className="lab__tag">{tag}</span>}
-        </figcaption>
+        </p>
         {actions && <div className="lab__actions">{actions}</div>}
       </div>
       <div className="lab__body">{children}</div>

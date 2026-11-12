@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { api } from '../api/client';
 import type { ActivityId, CityId } from '../api/types';
-import { ClassPatterns } from '../components/common';
+import { ClassPatterns, ErrorState } from '../components/common';
 import { Header } from '../components/Header';
 import { CLASS_IDS } from '../lib/classes';
 import { useDebounced, useRequest } from '../lib/hooks';
 import { useInView } from '../lib/motion';
-import type { Navigate } from '../lib/route';
+import { lastPlannerSearch, usePageFocus, type Navigate } from '../lib/route';
 import { load, save } from '../lib/storage';
 import { useTheme } from '../lib/theme';
 import { AstarLab } from './AstarLab';
@@ -43,7 +43,11 @@ const REPO = 'https://github.com/tairqaldy/tynys';
 
 export default function DocsPage({ navigate }: { navigate: Navigate }) {
   const [theme, toggleTheme] = useTheme();
-  const [city, setCityState] = useState<CityId>(() => (load('tynys.city') === 'almaty' ? 'almaty' : 'astana'));
+  const [city, setCityState] = useState<CityId>(() => {
+    const fromPlanner = new URLSearchParams(lastPlannerSearch()).get('city');
+    const c = fromPlanner ?? load('tynys.city');
+    return c === 'almaty' ? 'almaty' : 'astana';
+  });
   const setCity = (c: CityId) => {
     setCityState(c);
     save('tynys.city', c);
@@ -83,6 +87,7 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
   });
   const plan = planReq.data && planReq.data.city === city ? planReq.data : null;
   const active = useScrollSpy(TOC.map((t) => t.id));
+  usePageFocus(air !== null && plan !== null);
 
   return (
     <>
@@ -135,7 +140,11 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
           ]}
           io={['24 readings · 4 time-of-day tables · emission matrix', 'belief now · belief for the next 48 h']}
         >
-          <HmmLab air={air} />
+          {!air && airReq.error ? (
+            <ErrorState title="The air model did not answer." message={airReq.error.message} onRetry={airReq.retry} />
+          ) : (
+            <HmmLab air={air} />
+          )}
         </DocSection>
 
         <DocSection
@@ -154,7 +163,19 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
           ]}
           io={['HMM belief and tables · activity · deadline · waiting cost', 'go now, wait until a given hour, or skip']}
         >
-          <MdpLab plan={plan} loading={planReq.loading} params={params} setParams={setParams} />
+          {!plan && planReq.error ? (
+            <ErrorState title="The planner did not answer." message={planReq.error.message} onRetry={planReq.retry} />
+          ) : (
+            <MdpLab plan={plan} loading={planReq.loading} params={params} setParams={setParams} />
+          )}
+          {plan && planReq.error && (
+            <p className="inline-error" role="alert">
+              Could not update the plan: {planReq.error.message}{' '}
+              <button type="button" className="link-btn" onClick={planReq.retry}>
+                Try again
+              </button>
+            </p>
+          )}
         </DocSection>
 
         <DocSection

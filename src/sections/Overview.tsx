@@ -168,6 +168,7 @@ function Ribbon({ air }: { air: AirResponse }) {
   const future = air.hmm.predicted;
   const cells = [
     ...past.map((r) => ({ t: r.time, c: r.band, p: 1, past: true, pm: r.pm25 })),
+
     ...future.map((h) => {
       const c = argmax(h.belief);
       return { t: h.time, c, p: h.belief[c], past: false, pm: h.expected_pm25 };
@@ -188,9 +189,9 @@ function Ribbon({ air }: { air: AirResponse }) {
           <span
             key={x.t}
             className={`ribbon__cell${x.past ? '' : ' is-future'}${i === nowIdx ? ' is-now' : ''}`}
-            data-c={CLASS_IDS[x.c]}
+            data-c={x.c === null ? undefined : CLASS_IDS[x.c]}
             style={{ ['--p' as string]: x.past ? 1 : 0.35 + 0.65 * x.p, ['--i' as string]: i }}
-            title={`${hhmm(x.t)} · ${CLASS_LABEL[x.c]}${x.past ? '' : ` (${pct(x.p)})`} · ${num(x.pm, 1)} µg/m³`}
+            title={x.c === null ? `${hhmm(x.t)} · no model value` : `${hhmm(x.t)} · ${CLASS_LABEL[x.c]}${x.past ? '' : ` (${pct(x.p)})`} · ${num(x.pm, 1)} µg/m³`}
           />
         ))}
       </div>

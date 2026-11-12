@@ -140,6 +140,27 @@
     gap: 6px;
   }
 }
+@media (max-width: 400px) {
+  .topbar {
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .tabs__a {
+    padding: 6px 8px;
+  }
+  .topbar .segmented__opt span {
+    padding: 0 9px;
+  }
+  .topbar .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (max-width: 365px) {
+  .topbar .brandmark {
+    display: none;
+  }
+}
 
 .icon-btn {
   display: inline-grid;

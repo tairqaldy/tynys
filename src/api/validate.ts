@@ -132,7 +132,7 @@ export const SPECS = {
     source: { oneOf: ['live', 'snapshot'] },
     snapshot_taken: { optional: 'string' },
     current: { pm25: 'number', pm10: { nullable: 'number' }, band: 'class' },
-    readings: { array: { time, pm25: 'number', band: 'class' } },
+    readings: { array: { time, pm25: { nullable: 'number' }, band: { nullable: 'class' } } },
     forecast: { array: { time, pm25: 'number', band: 'class' } },
     hmm: {
       history_hours: 'int',
@@ -144,7 +144,7 @@ export const SPECS = {
       transitions: blocks('mat4'),
       transition_counts: { ...blocks('mat4'), all: 'mat4' },
       backed_off: { array: { block: { oneOf: ['night', 'morning', 'day', 'evening'] }, row: 'class', count: 'int' } },
-      filtered: { array: { time, obs: 'class', belief: 'vec4', viterbi: 'class' } },
+      filtered: { array: { time, obs: { nullable: 'class' }, belief: 'vec4', viterbi: 'class' } },
       belief_now: 'vec4',
       state_now: 'class',
       bayes_step: {

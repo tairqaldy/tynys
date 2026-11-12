@@ -322,6 +322,8 @@ export function MapView(p: Props) {
   useEffect(() => {
     const r = p.route;
     if (anim.current) cancelAnimationFrame(anim.current);
+    if (drawAnim.current) cancelAnimationFrame(drawAnim.current);
+    drawAnim.current = null;
     exploredFilter.current = HIDE_ALL;
     shownRef.current = 0;
     anim.current = null;
@@ -333,7 +335,6 @@ export function MapView(p: Props) {
       return;
     }
     // draw both routes in from A to B (by distance), unless motion is reduced
-    if (drawAnim.current) cancelAnimationFrame(drawAnim.current);
     const clean = r.cleanest.coords;
     const short = r.comparison.same_route ? null : r.shortest.coords;
     const showAt = (e: number) => {

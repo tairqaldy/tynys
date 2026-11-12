@@ -13,6 +13,7 @@ import { load, save } from './lib/storage';
 import { parseUrlState, writeUrlState, type UrlPoint } from './lib/urlState';
 import type { Navigate } from './lib/route';
 import { useTheme } from './lib/theme';
+import { usePageFocus } from './lib/route';
 import { About } from './sections/About';
 import { MathSection } from './sections/MathSection';
 import { Now } from './sections/Now';
@@ -46,6 +47,7 @@ export default function App({ navigate }: { navigate: Navigate }) {
   const [urlInit] = useState(() => parseUrlState(window.location.search));
   const [city, setCityState] = useState<CityId>(() => urlInit.city ?? (load('tynys.city') === 'almaty' ? 'almaty' : 'astana'));
   const [theme, toggleTheme] = useTheme();
+  usePageFocus(false);
 
   const usingMock = useSyncExternalStore(mockStore.subscribe, mockStore.get, () => false);
   const reducedMotion = useReducedMotion();

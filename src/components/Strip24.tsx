@@ -86,16 +86,18 @@ export function Strip24({ readings, filtered }: { readings: HourReading[]; filte
           </text>
           {hours.map((h, k) => (
             <g key={h.time}>
-              {[
-                [rowY1, h.obs],
-                [rowY2, h.viterbi],
-              ].map(([ry, c], j) => (
+              {(
+                [
+                  [rowY1, h.obs],
+                  [rowY2, h.viterbi],
+                ] as [number, number | null][]
+              ).map(([ry, c], j) => (
                 <g key={j}>
-                  <rect x={gl + k * cw + 0.5} y={ry} width={Math.max(1, cw - 1)} height={rowH} fill={classFill(c)} />
-                  <rect x={gl + k * cw + 0.5} y={ry} width={Math.max(1, cw - 1)} height={rowH} fill={classPattern(c)} />
+                  <rect x={gl + k * cw + 0.5} y={ry} width={Math.max(1, cw - 1)} height={rowH} fill={c === null ? 'var(--wash-2)' : classFill(c)} />
+                  {c !== null && <rect x={gl + k * cw + 0.5} y={ry} width={Math.max(1, cw - 1)} height={rowH} fill={classPattern(c)} />}
                   {showLetters && (
-                    <text x={cx(k)} y={ry + 11.5} textAnchor="middle" className="cell-letter" style={{ fill: classOn(c) }}>
-                      {CLASS_LETTER[c]}
+                    <text x={cx(k)} y={ry + 11.5} textAnchor="middle" className="cell-letter" style={{ fill: c === null ? 'var(--ink-3)' : classOn(c) }}>
+                      {c === null ? '–' : CLASS_LETTER[c]}
                     </text>
                   )}
                 </g>
@@ -118,7 +120,7 @@ export function Strip24({ readings, filtered }: { readings: HourReading[]; filte
         rows={hours.map((h) => [
           hhmm(h.time),
           h.pm25 === null ? '–' : num(h.pm25, 1),
-          CLASS_LABEL[h.obs],
+          h.obs === null ? 'missing' : CLASS_LABEL[h.obs],
           CLASS_LABEL[h.viterbi],
         ])}
       />

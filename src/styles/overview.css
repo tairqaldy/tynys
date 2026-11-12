@@ -184,6 +184,9 @@
   background: var(--cf);
   opacity: var(--p);
 }
+.ribbon__cell:not([data-c]) {
+  background: var(--wash-2);
+}
 .ribbon__cell.is-future {
   background-image: linear-gradient(transparent, transparent);
   border-radius: 1px;
