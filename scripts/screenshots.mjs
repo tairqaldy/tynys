@@ -22,12 +22,12 @@ const SHOTS = [
   { name: 'overview-dark', query: '/?city=astana', w: 1440, h: 900, scheme: 'dark' },
   { name: 'when', query: '/?city=almaty&activity=kids', w: 1440, h: 900, scheme: 'light', scrollTo: 'When should I go out?', offset: 0 },
   { name: 'route', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', scrollTo: 'Which way should I walk?', offset: 330 },
-  { name: 'math', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', openMath: true, scrollTo: 'Hidden Markov model', offset: -40 },
+  { name: 'math', query: '/?city=almaty', w: 1440, h: 900, scheme: 'light', openMath: true, scrollId: 'math', before: 'window.scrollBy(0, 150)' },
   { name: 'phone', query: '/?city=almaty', w: 390, h: 844, scheme: 'light', mobile: true },
   { name: 'docs', query: '/docs', w: 1440, h: 900, scheme: 'light' },
   { name: 'docs-hmm', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'hmm', before: "document.querySelectorAll('#hmm .hl-feed__btn')[2]?.click()" },
   { name: 'docs-mdp', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'mdp', before: "document.querySelector('#mdp .lab-btn--solid')?.click()" },
-  { name: 'docs-astar', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'astar' },
+  { name: 'docs-astar', query: '/docs', w: 1440, h: 900, scheme: 'light', scrollId: 'astar', before: "document.querySelector('#astar .lab').scrollIntoView({ behavior: 'instant' }); window.scrollBy(0, -130)" },
   { name: 'docs-dark', query: '/docs', w: 1440, h: 900, scheme: 'dark', scrollId: 'results' },
 ];
 
@@ -67,7 +67,8 @@ try {
 
   mkdirSync(OUT, { recursive: true });
   await send('Page.enable');
-  for (const s of SHOTS) {
+  const only = process.env.ONLY ? process.env.ONLY.split(',') : null;   // e.g. ONLY=math,docs-astar
+  for (const s of SHOTS.filter((x) => !only || only.includes(x.name))) {
     await send('Emulation.setDeviceMetricsOverride', { width: s.w, height: s.h, deviceScaleFactor: s.mobile ? 2 : 1, mobile: !!s.mobile });
     await send('Emulation.setEmulatedMedia', { features: [
       { name: 'prefers-color-scheme', value: s.scheme },
@@ -80,7 +81,7 @@ try {
     await send('Page.navigate', { url: BASE + s.query });
     await sleep(9000);                                         // API calls, style, tiles, example route
     if (s.openMath) {
-      await run(`document.querySelector('details') && (document.querySelector('details').open = true)`);
+      await run(`document.querySelector('#math details') && (document.querySelector('#math details').open = true)`);
       await sleep(500);
     }
     if (s.scrollId) {
