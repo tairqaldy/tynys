@@ -116,3 +116,12 @@ describe.each([
     expect(deepChecks(kindOf(path)!, data)).toEqual([]);
   });
 });
+
+describe('missing model hours', () => {
+  it('an hour without a model value (null pm25, band and obs) still passes validation', () => {
+    const air = structuredClone(mocks['../mocks/air_almaty.json']) as AirResponse;
+    air.readings[5] = { ...air.readings[5], pm25: null, band: null };
+    air.hmm.filtered[3] = { ...air.hmm.filtered[3], obs: null };
+    expect(validate('air', air)).toEqual([]);
+  });
+});

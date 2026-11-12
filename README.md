@@ -60,8 +60,8 @@ python -m unittest discover tests
 runs 50 tests offline: the umbrella-world HMM from the textbook, a hand-solved MDP, A* on a grid with a
 wall, A* against Dijkstra on the real street graphs, and checks that every hour index in the API lines up.
 The web interface has its own tests (`pnpm test`): the API contract, every section rendered with each saved
-response, and the TypeScript re-implementations used by the labs on `/docs` checked against the Python
-results.
+response, the labs' TypeScript versions of the Bayes step and the Bellman backup checked against the Python
+results, and the lab's grid A* checked against Dijkstra.
 
 ```bash
 python -m tynys.evaluate

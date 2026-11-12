@@ -45,6 +45,16 @@ describe.each([640, 343])('sections at %ipx', (w) => {
       expect(html).toContain('How is the air right now?');
     });
 
+    it(`${city}: a missing model hour renders as a gap, not undefined`, () => {
+      width = w;
+      const gap = structuredClone(air);
+      gap.readings[gap.readings.length - 3] = { ...gap.readings[gap.readings.length - 3], pm25: null, band: null };
+      gap.hmm.filtered[20] = { ...gap.hmm.filtered[20], obs: null };
+      const plan = get<PlanResponse>(`plan_${city}_walk`);
+      clean(renderToStaticMarkup(<Overview air={gap} plan={plan} route={route} cityName={cm.name} airError={false} />));
+      clean(renderToStaticMarkup(<Now req={req(gap)} air={gap} cityName={cm.name} reliability={0.8} setReliability={() => {}} />));
+    });
+
     it(`${city}: Overview`, () => {
       width = w;
       const plan = get<PlanResponse>(`plan_${city}_walk`);
