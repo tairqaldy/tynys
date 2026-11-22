@@ -1,0 +1,82 @@
+[
+ [
+  "intro",
+  "M",
+  "This is Tynys, which means breath in Kazakh. It's our final project for AI Fundamentals: a planner that tells you how clean the air is, when to go outside, and which way to walk, in Almaty and Astana."
+ ],
+ [
+  "overview",
+  "M",
+  "The first screen answers all three questions at once. The number in the middle is the model's P M two point five. The coloured ring around it shows how sure we are about each air class, and the strip below covers the last day and the next two, hour by hour."
+ ],
+ [
+  "three",
+  "F",
+  "Each answer comes from a different algorithm we studied in the course. A hidden Markov model reads the air. A Markov decision process picks the hour. And A star search picks the street. Each one hands its result to the next."
+ ],
+ [
+  "hmm-why",
+  "F",
+  "Why a hidden Markov model? Our P M two point five comes from an atmospheric model on a forty kilometre grid, not from a sensor on your street. So the real air class is hidden, and each hourly value is only evidence about it. That's lecture seven."
+ ],
+ [
+  "hmm-trust",
+  "F",
+  "This slider is the sensor model: how often the city value matches your street. When we trust it less, the belief spreads out, because the filter leans more on what usually happens at this hour of the day."
+ ],
+ [
+  "hmm-lab",
+  "F",
+  "On the How it works page, the same filter runs one step at a time. Feed it a reading and watch it predict with this hour's transition matrix, weigh by the emission probability, then normalise. That's Bayes' rule from lecture six, every hour."
+ ],
+ [
+  "mdp-why",
+  "M",
+  "Knowing the air isn't enough: you still have to decide. Go now, wait, or skip. That's a Markov decision process, from lecture five. The state is the hour and the air class, and the reward is the benefit of going out minus the harm of what you breathe."
+ ],
+ [
+  "mdp-activity",
+  "M",
+  "Choose outside with a child, and the harm counts double, so the plan gets more careful. These bars are the expected value of each action right now. The biggest one wins."
+ ],
+ [
+  "mdp-lab",
+  "M",
+  "In the lab, press play, and backward induction fills the policy from the deadline back to now. Every cell is one Bellman backup: the reward for going now against the expected value of waiting another hour. The planner then weights this table by the belief from the hidden Markov model."
+ ],
+ [
+  "astar-why",
+  "F",
+  "Then the route. A star searches the real OpenStreetMap graph of the city centre. A street's cost is its length times an exposure index: a main road counts double, a path through a park counts point six."
+ ],
+ [
+  "astar-h",
+  "F",
+  "Our heuristic is straight-line distance times point six, the smallest index any street has. So it never overestimates, and A star still finds the cheapest route. Replay shows the order it opened the nodes in."
+ ],
+ [
+  "astar-lab",
+  "F",
+  "In the lab, A star races Dijkstra, the uniform cost search from lecture two, on a toy city. Paint a park or a road, and both still agree on the cost. A star simply wastes less time looking the wrong way."
+ ],
+ [
+  "results",
+  "M",
+  "We measured all three. On the real street graphs, A star opened sixty to eighty-two percent fewer nodes than Dijkstra, for the same route cost. In Almaty, following the policy beat always going now, for every activity, even without any forecast."
+ ],
+ [
+  "negative",
+  "F",
+  "And one honest negative result. Over the Almaty test period, the transition tables alone lost to simply assuming nothing changes, because the heating season started in the middle of it. The live app also uses the forecast."
+ ],
+ [
+  "limits",
+  "M",
+  "We label every assumption. The values are model estimates, not street sensors, and the exposure index is a traffic proxy, not a measurement. The app compares options; it isn't medical advice."
+ ],
+ [
+  "outro",
+  "M",
+  "Everything runs on hand-written Python, with no machine learning libraries and fifty tests, and it's live right now. Tynys was built by Tair Kaldybayev, and Dameli Kalikhanova. Thanks for watching."
+ ]
+]

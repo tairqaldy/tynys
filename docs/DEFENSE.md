@@ -68,7 +68,8 @@ The explainer with the three interactive labs: <https://tynys-blond.vercel.app/d
 
 **If the internet fails:** run `python -m tynys.demo --city almaty --offline` in a terminal. It prints
 the same three algorithms from the bundled snapshot. If only Open-Meteo fails, the site switches to the
-snapshot by itself and shows a "Snapshot data" badge.
+snapshot by itself and shows a "Snapshot data" badge. The 4-minute demo video in the repository
+(`public/demo/tynys-demo.mp4`) follows this same path and plays without a connection.
 
 ## 1. Hidden Markov model — `tynys/hmm.py`
 

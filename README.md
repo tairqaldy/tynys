@@ -15,6 +15,13 @@ Team: **Tair Kaldybayev** ([@tairqaldy](https://github.com/tairqaldy)) and **Dam
 
 **Live: <https://tynys-blond.vercel.app>** · **[How it works](https://tynys-blond.vercel.app/docs)** (interactive labs for the three algorithms) · [defense notes](docs/DEFENSE.md) · [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
 
+[![Demo video, 4 minutes: the planner and the three labs on live Almaty data](docs/screenshots/demo.jpg)](https://tynys-blond.vercel.app/demo/tynys-demo.mp4)
+
+**[Demo video (4 min)](https://tynys-blond.vercel.app/demo/tynys-demo.mp4)**: the planner and the three labs on live
+Almaty data, each algorithm tied to the lecture it comes from (A* lecture 2, MDP lecture 5, Bayes lecture 6, HMM
+lecture 7), and what the evaluation found, including a negative result. Two narrators, synthetic ElevenLabs voices; the script is in
+[`video/`](video/).
+
 ![Tynys: the Now, When and Which way sections beside the map](docs/screenshots/overview.png)
 
 | How it works: the pipeline | Bayes filter lab | A* against Dijkstra lab |
@@ -193,6 +200,8 @@ tests/      unittest, offline
 src/        web interface: Vite, React, TypeScript, MapLibre; charts are hand-built SVG
 src/docs/   the /docs page: the pipeline, the three interactive labs, evaluation charts, team
 docs/       SPEC.md, evaluation.md, demo outputs, DEFENSE.md, AI-USAGE.md
+video/      script of the demo video: narration, scenes, title pages
+public/     static files served with the site, including the demo video
 ```
 
 ## Data and credits
@@ -212,5 +221,6 @@ all commits come from one account.
 
 ## AI assistance
 
-This project was built with substantial help from Claude (Anthropic). What the AI did and how the
-result was checked is recorded in [`docs/AI-USAGE.md`](docs/AI-USAGE.md).
+This project was built with substantial help from Claude (Anthropic). The narration of the demo video
+uses two synthetic ElevenLabs voices. What the AI did and how the result was checked is recorded in
+[`docs/AI-USAGE.md`](docs/AI-USAGE.md).
