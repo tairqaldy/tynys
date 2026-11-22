@@ -5,6 +5,7 @@
 
 | File | What it holds |
 |---|---|
+| [`SCRIPT.md`](SCRIPT.md) | the narration as plain text, scene by scene, with times and what is on screen |
 | `narration.json` | what is said in each scene, and by which narrator (`M` male, `F` female voice) |
 | `scenes.mjs` | the captions and the scripted cursor actions of each scene |
 | `titles.mjs` | the animated opening and closing pages |
