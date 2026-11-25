@@ -13,7 +13,8 @@ It answers three questions you have on a smoggy day, each with a different AI al
 Final project for **AIF1303 AI Fundamentals**, QAIRU, trimester 1, 2026–27.
 Team: **Tair Kaldybayev** ([@tairqaldy](https://github.com/tairqaldy)) and **Dameli Kalikhanova** ([@dameo111](https://github.com/dameo111)).
 
-**Live: <https://tynys-blond.vercel.app>** · **[How it works](https://tynys-blond.vercel.app/docs)** (interactive labs for the three algorithms) · [defense notes](docs/DEFENSE.md) · [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
+**Live: <https://tynys-blond.vercel.app>** · **[How it works](https://tynys-blond.vercel.app/docs)** (interactive labs for the three algorithms) · [defense notes](docs/DEFENSE.md) · 
+- [evaluation](docs/evaluation.md) · [specification](docs/SPEC.md)
 
 [![Demo video, 4 minutes: the planner and the three labs on live Almaty data](docs/screenshots/demo.jpg)](https://tynys-blond.vercel.app/demo/tynys-demo.mp4)
 
