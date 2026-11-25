@@ -217,8 +217,16 @@ public/     static files served with the site, including the demo video
 
 ## Team
 
-Tair Kaldybayev and Dameli Kalikhanova, AI & ML, year 1. The work was done together on one laptop, so
-all commits come from one account.
+Tair Kaldybayev ([@tairqaldy](https://github.com/tairqaldy)) and Dameli Kalikhanova
+([@dameo111](https://github.com/dameo111)), AI & ML, year 1. Much of the work was done side by side on
+one laptop, so the early commits all come from a single account.
+
+### With thanks to
+
+Our teachers, for this trimester:
+
+- Tair — Dilnura Ali, Aizhan Sydykova
+- Dameli — Alfarabi Imashev, Gulzhan Uskenbayeva
 
 ## AI assistance
 
