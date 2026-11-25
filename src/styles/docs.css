@@ -954,40 +954,79 @@
 }
 
 /* team */
+.team__lede {
+  margin-top: var(--space-4);
+  max-width: 54ch;
+  font-size: var(--fs-lg);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
 .team {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: var(--space-6) 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
   max-width: 760px;
 }
 .person {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  column-gap: 14px;
-  align-items: center;
-  padding: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
   border: 1px solid var(--rule);
   border-radius: var(--radius-xl);
   background: var(--raised);
+  overflow: hidden;
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+/* a hairline of the page's current air across the top of the card */
+.person::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--air-fill);
+}
+.person:hover {
+  border-color: var(--rule-strong);
+  box-shadow: 0 6px 22px rgb(23 32 38 / 0.07);
+}
+:root[data-theme='dark'] .person:hover {
+  box-shadow: 0 6px 22px rgb(0 0 0 / 0.34);
+}
+.person__id {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 14px;
+  align-items: center;
 }
 .person__av {
-  grid-row: 1 / 3;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: var(--ink);
   color: var(--paper);
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   letter-spacing: 0.02em;
 }
+.person__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 .person__name {
+  font-family: var(--font-serif);
+  font-size: var(--fs-lg);
+  line-height: 1.25;
   font-weight: 600;
 }
 .person__gh {
@@ -996,14 +1035,108 @@
   color: var(--ink-3);
   text-decoration: none;
   justify-self: start;
+  align-self: flex-start;
 }
 .person__gh:hover {
   color: var(--ink);
   text-decoration: underline;
 }
+.person__thanks {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--rule);
+}
+.person__thanks-k {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.person__thanks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.person__thanks li {
+  position: relative;
+  padding-left: 16px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.person__thanks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--air-fill);
+}
+
+/* the thank-you to the teachers */
+.team-quote {
+  margin: var(--space-6) 0 0;
+  max-width: 760px;
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
+  border-left: 2px solid var(--air-fill);
+  background: var(--wash);
+  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+}
+.team-quote blockquote {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.35rem, 1.05rem + 1.1vw, 1.85rem);
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.team-quote__heart {
+  display: inline-block;
+  margin-left: 0.3em;
+  font-style: normal;
+  color: var(--c-high);
+}
+.team-quote figcaption {
+  margin-top: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .person {
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+  .person:hover {
+    transform: translateY(-2px);
+  }
+  .team-quote__heart {
+    animation: heart-beat 2.6s var(--ease-in-out) infinite;
+  }
+}
+@keyframes heart-beat {
+  0%,
+  70%,
+  100% {
+    transform: scale(1);
+  }
+  82% {
+    transform: scale(1.14);
+  }
+}
 @media (max-width: 560px) {
   .team {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .team-quote {
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
   }
 }
 .colophon-grid {

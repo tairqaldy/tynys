@@ -222,10 +222,32 @@ export default function DocsPage({ navigate }: { navigate: Navigate }) {
 
         <section className="doc-block" id="team" aria-labelledby="team-h">
           <BlockHead kicker="AIF1303 AI Fundamentals · final project · QAIRU 2026" title="Team" id="team-h" />
+          <p className="team__lede">
+            AI &amp; ML, year one. One trimester, one laptop between us, every line written side by side.
+          </p>
           <ul className="team">
-            <Person name="Tair Kaldybayev" handle="tairqaldy" initials="TK" />
-            <Person name="Dameli Kalikhanova" handle="dameo111" initials="DK" />
+            <Person
+              name="Tair Kaldybayev"
+              handle="tairqaldy"
+              initials="TK"
+              thanks={['Dilnura Ali', 'Aizhan Sydykova']}
+            />
+            <Person
+              name="Dameli Kalikhanova"
+              handle="dameo111"
+              initials="DK"
+              thanks={['Alfarabi Imashev', 'Gulzhan Uskenbayeva']}
+            />
           </ul>
+          <figure className="team-quote">
+            <blockquote>
+              Thank you for this trimester
+              <span className="team-quote__heart" aria-hidden="true">
+                ♥
+              </span>
+            </blockquote>
+            <figcaption>Tair &amp; Dameli, to our teachers</figcaption>
+          </figure>
           <div className="colophon-grid">
             <div>
               <h3>Source</h3>
@@ -360,16 +382,38 @@ function Limit({ t, d }: { t: string; d: string }) {
   );
 }
 
-function Person({ name, handle, initials }: { name: string; handle: string; initials: string }) {
+function Person({
+  name,
+  handle,
+  initials,
+  thanks,
+}: {
+  name: string;
+  handle: string;
+  initials: string;
+  thanks: string[];
+}) {
   return (
     <li className="person">
-      <span className="person__av" aria-hidden="true">
-        {initials}
-      </span>
-      <span className="person__name">{name}</span>
-      <a className="person__gh" href={`https://github.com/${handle}`}>
-        @{handle}
-      </a>
+      <div className="person__id">
+        <span className="person__av" aria-hidden="true">
+          {initials}
+        </span>
+        <div className="person__who">
+          <span className="person__name">{name}</span>
+          <a className="person__gh" href={`https://github.com/${handle}`}>
+            @{handle}
+          </a>
+        </div>
+      </div>
+      <div className="person__thanks">
+        <h3 className="person__thanks-k">With thanks to</h3>
+        <ul>
+          {thanks.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      </div>
     </li>
   );
 }
